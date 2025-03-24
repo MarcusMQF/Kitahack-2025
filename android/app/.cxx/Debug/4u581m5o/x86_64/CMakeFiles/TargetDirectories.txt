@@ -1,0 +1,2 @@
+C:/Users/User/Documents/Visual Studio Code/transit_go_app/android/app/.cxx/Debug/4u581m5o/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/User/Documents/Visual Studio Code/transit_go_app/android/app/.cxx/Debug/4u581m5o/x86_64/CMakeFiles/rebuild_cache.dir
