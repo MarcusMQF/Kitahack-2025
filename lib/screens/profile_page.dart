@@ -9,6 +9,7 @@ class ProfileData {
   static String username = 'Marcus';
   static String email = 'marcus.t@example.com';
   static bool notificationsEnabled = true;
+  static String paymentAccountName = 'MARCUS'; // Separate payment account name
 }
 
 class ProfilePage extends StatefulWidget {
@@ -97,7 +98,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         children: [
           // Blue curved header with profile information
           Container(
-            height: 320,
+            height: 330,
             width: double.infinity,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
@@ -106,8 +107,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 end: Alignment.bottomRight,
               ),
               borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
+                bottomLeft: Radius.circular(35),
+                bottomRight: Radius.circular(35),
               ),
               boxShadow: [
                 BoxShadow(
@@ -169,7 +170,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                           bottom: 50,
                           left: 0,
                           right: 0,
-                          child: Container(
+                          child: SizedBox(
                             height: 60,
                             child: CustomPaint(
                               size: Size(MediaQuery.of(context).size.width, 60),
@@ -431,8 +432,9 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Payment account name (without the label)
                     Text(
-                      ProfileData.username.toUpperCase(),
+                      ProfileData.paymentAccountName,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
