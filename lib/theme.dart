@@ -40,11 +40,9 @@ class AppTheme {
       primary: primaryBlue,
       secondary: secondaryBlue,
       surface: surfaceColor,
-      background: backgroundColor,
       onPrimary: primaryWhite,
       onSecondary: primaryWhite,
       onSurface: primaryGrey,
-      onBackground: primaryGrey,
     ),
 
     // Text Theme
@@ -77,8 +75,8 @@ class AppTheme {
       indicatorColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
-      labelTextStyle: MaterialStateProperty.resolveWith((states) {
-        if (states.contains(MaterialState.selected)) {
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
           return const TextStyle(color: primaryBlue, fontWeight: FontWeight.w600);
         }
         return const TextStyle(color: secondaryGrey);

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'screens/home_page.dart';
 import 'screens/route_page.dart';
 import 'screens/reward_page.dart';
-import 'screens/profile_page.dart';
 import 'screens/my_trip_page.dart';
+import 'screens/qr_scanner_page.dart';
 import 'theme.dart';
 
 void main() {
@@ -32,24 +32,41 @@ class MainNavigationScreen extends StatefulWidget {
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  int _selectedIndex = 2;
+  int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    const RewardPage(),
-    const MyTripPage(),
     const HomePage(),
+    const MyTripPage(),
     const RoutePage(),
-    const ProfilePage(),
+    const RewardPage(),
   ];
 
   void _onItemTapped(int index) {
     setState(() {
-      _selectedIndex = index;
+      if (index == 2) {
+        // Launch QR scanner as a standalone page
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const QRScannerPage()),
+        );
+      } else if (index > 2) {
+        // Adjust index for pages array (skip QR scanner in the pages list)
+        _selectedIndex = index - 1;
+      } else {
+        _selectedIndex = index;
+      }
     });
   }
 
   Widget _buildNavItem(IconData icon, String label, int index) {
-    final isSelected = _selectedIndex == index;
+    // Determine if this nav item is selected
+    bool isSelected;
+    if (index < 2) {
+      isSelected = _selectedIndex == index;
+    } else {
+      isSelected = _selectedIndex == index - 1;
+    }
+    
     return NavigationDestination(
       icon: Column(
         mainAxisSize: MainAxisSize.min,
@@ -61,15 +78,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               child: Icon(
                 icon,
                 color: isSelected ? Colors.blue : Colors.grey.shade600,
-                size: isSelected ? 28 : 24,
+                size: isSelected ? 24 : 22,
               ),
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 3),
           AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 200),
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               color: isSelected ? Colors.blue : Colors.grey.shade600,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
@@ -91,27 +108,76 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
+  Widget _buildScanButton(int index) {
+    return NavigationDestination(
+      icon: Transform.translate(
+        offset: const Offset(0, -22), // Keep the same offset to maintain position
+        child: Container(
+          height: 56,
+          width: 56,
+          decoration: BoxDecoration(
+            color: const Color(0xFF2196F3),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha((0.1 * 255).round()),
+                blurRadius: 8,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.qr_code_scanner,
+            color: Colors.white,
+            size: 28,
+          ),
+        ),
+      ),
+      label: '',  // Empty label to avoid text under the floating button
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Calculate display index for highlighting (accounting for QR scanner position)
+    int displayIndex = _selectedIndex;
+    if (_selectedIndex >= 2) {
+      displayIndex = _selectedIndex + 1;
+    }
+    
     return Scaffold(
       body: _pages[_selectedIndex],
-      bottomNavigationBar: NavigationBar(
-        height: 75,
-        elevation: 0,
-        backgroundColor: Colors.white,
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: _onItemTapped,
-        animationDuration: const Duration(milliseconds: 400),
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-        destinations: [
-          _buildNavItem(Icons.card_giftcard, 'Reward', 0),
-          _buildNavItem(Icons.directions_bus, 'My Trip', 1),
-          _buildNavItem(Icons.home, 'Home', 2),
-          _buildNavItem(Icons.map, 'Map', 3),
-          _buildNavItem(Icons.person, 'Profile', 4),
-        ],
-        indicatorColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha((0.05 * 255).round()),
+              blurRadius: 2,
+              offset: const Offset(0, -1),
+            ),
+          ],
+        ),
+        child: NavigationBar(
+          height: 64,
+          elevation: 0,
+          backgroundColor: Colors.white,
+          selectedIndex: displayIndex,
+          onDestinationSelected: _onItemTapped,
+          animationDuration: const Duration(milliseconds: 400),
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+          indicatorColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          overlayColor: WidgetStateProperty.all(Colors.transparent),
+          destinations: [
+            _buildNavItem(Icons.home, 'Home', 0),
+            _buildNavItem(Icons.directions_bus, 'My Trip', 1),
+            _buildScanButton(2),
+            _buildNavItem(Icons.map, 'Route', 3),
+            _buildNavItem(Icons.card_giftcard, 'Reward', 4),
+          ],
+        ),
       ),
     );
   }
