@@ -107,6 +107,14 @@ class AppThemeColors {
     required this.accentColor,
   });
   
+  // Helper function to convert theme name to theme key
+  static String nameToKey(String themeName) {
+    if (themeName == 'Mint Green') {
+      return 'mint';
+    }
+    return themeName.toLowerCase().replaceAll(' ', '');
+  }
+  
   // Factory method to create AppThemeColors from a theme key
   factory AppThemeColors.fromTheme(String themeKey) {
     switch (themeKey) {

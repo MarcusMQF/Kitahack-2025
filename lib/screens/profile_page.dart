@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:math' as math;
+import '../utils/app_theme.dart'; // Import theme utilities
 
 // Class to store shared profile data
 class ProfileData {
@@ -10,6 +11,7 @@ class ProfileData {
   static String email = 'marcus.t@example.com';
   static bool notificationsEnabled = true;
   static String paymentAccountName = 'MARCUS'; // Separate payment account name
+  static String themeKey = 'blue'; // Default theme
 }
 
 class ProfilePage extends StatefulWidget {
@@ -80,6 +82,9 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    // Use the current theme colors for the profile header gradient
+    final themeColors = AppThemeColors.fromTheme(AppTheme.currentThemeKey);
+    
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
@@ -98,11 +103,11 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         children: [
           // Blue curved header with profile information
           Container(
-            height: 330,
+            height: 350,
             width: double.infinity,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF2196F3), Color(0xFF64B5F6)],
+              gradient: LinearGradient(
+                colors: [themeColors.primaryColor, themeColors.secondaryColor],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -112,7 +117,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.blue.withAlpha(60),
+                  color: themeColors.primaryColor.withAlpha(60),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                   spreadRadius: -4,
@@ -198,12 +203,12 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                               child: Stack(
                                 children: [
                                   Container(
-                                    height: 80,
-                                    width: 80,
+                                    height: 100,
+                                    width: 100,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       color: Colors.grey.shade300,
-                                      border: Border.all(color: Colors.white, width: 3),
+                                      border: Border.all(color: Colors.white, width: 4),
                                     ),
                                     child: ClipOval(
                                       child: _profileImage != null
@@ -213,7 +218,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                                             )
                                           : const Icon(
                                               Icons.person,
-                                              size: 40,
+                                              size: 50,
                                               color: Colors.white,
                                             ),
                                     ),
@@ -224,7 +229,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                                     child: GestureDetector(
                                       onTap: _pickImageFromGallery,
                                       child: Container(
-                                        padding: const EdgeInsets.all(5),
+                                        padding: const EdgeInsets.all(6),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
                                           shape: BoxShape.circle,
@@ -239,7 +244,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                                         child: const Icon(
                                           Icons.edit,
                                           color: Colors.blue,
-                                          size: 14,
+                                          size: 18,
                                         ),
                                       ),
                                     ),
@@ -275,14 +280,14 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                                       Icon(
                                         Icons.edit,
                                         color: Colors.white,
-                                        size: 14,
+                                        size: 16,
                                       ),
                                       SizedBox(width: 4),
                                       Text(
                                         'Edit',
                                         style: TextStyle(
                                           color: Colors.white,
-                                          fontSize: 12,
+                                          fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -354,6 +359,60 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                     color: Color(0xFFE0E0E0),
                   ),
                   
+                  // Appearance section
+                  const Text(
+                    'Appearance',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildMenuOption(
+                    icon: Icons.palette,
+                    title: 'App Color Theme',
+                    onTap: () {
+                      _showThemeSelector();
+                    },
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 2,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          AppThemeColors.fromTheme(ProfileData.themeKey).name,
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(Icons.chevron_right, color: Colors.grey.shade500),
+                      ],
+                    ),
+                  ),
+                  
+                  const Divider(
+                    height: 32,
+                    thickness: 1,
+                    color: Color(0xFFE0E0E0),
+                  ),
+                  
                   // Support section
                   const Text(
                     'Support',
@@ -410,8 +469,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       child: Row(
         children: [
           Container(
-            width: 60,
-            height: 60,
+            width: 70,
+            height: 70,
             decoration: BoxDecoration(
               color: Colors.blue.shade700,
               borderRadius: BorderRadius.circular(12),
@@ -420,7 +479,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               child: Icon(
                 Icons.account_balance_wallet,
                 color: Colors.white,
-                size: 30,
+                size: 34,
               ),
             ),
           ),
@@ -527,7 +586,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
   
-  // Menu option item
+  // Modified menu option to support custom trailing widget
   Widget _buildMenuOption({
     required IconData icon,
     required String title,
@@ -536,6 +595,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     bool showArrow = false,
     bool showToggle = false,
     bool isToggled = false,
+    Widget? trailing,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -553,7 +613,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       child: ListTile(
         leading: Icon(
           icon,
-          color: textColor ?? Colors.blue.shade700,
+          color: textColor ?? AppTheme.accentColor,
+          size: 26,
         ),
         title: Text(
           title,
@@ -562,7 +623,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
             color: textColor,
           ),
         ),
-        trailing: showToggle
+        trailing: trailing ?? (showToggle
             ? Switch(
                 value: isToggled,
                 onChanged: (value) {
@@ -584,7 +645,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               )
             : showArrow
                 ? const Icon(Icons.chevron_right, color: Colors.grey)
-                : null,
+                : null),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -824,6 +885,216 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // Show theme selector dialog
+  void _showThemeSelector() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        elevation: 10,
+        backgroundColor: Colors.white,
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+              width: double.infinity,
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.8,
+                maxWidth: MediaQuery.of(context).size.width * 0.9,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Header section with gradient
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 18),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppThemeColors.fromTheme(ProfileData.themeKey).primaryColor,
+                          AppThemeColors.fromTheme(ProfileData.themeKey).secondaryColor,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(24),
+                        topRight: Radius.circular(24),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Choose Theme',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () => Navigator.pop(context),
+                              borderRadius: BorderRadius.circular(20),
+                              child: const Padding(
+                                padding: EdgeInsets.all(4.0),
+                                child: Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Select your preferred color theme',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Theme options section
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Theme options
+                        for (var theme in AppThemeColors.allThemes)
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                // Use the helper function for consistent key conversion
+                                ProfileData.themeKey = AppThemeColors.nameToKey(theme.name);
+                              });
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: ProfileData.themeKey == AppThemeColors.nameToKey(theme.name)
+                                    ? theme.primaryColor.withOpacity(0.1)
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: ProfileData.themeKey == AppThemeColors.nameToKey(theme.name)
+                                      ? theme.primaryColor
+                                      : Colors.grey.shade200,
+                                  width: ProfileData.themeKey == AppThemeColors.nameToKey(theme.name)
+                                      ? 2
+                                      : 1,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  // Theme color preview
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [theme.primaryColor, theme.secondaryColor],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: theme.primaryColor.withOpacity(0.2),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  // Theme name
+                                  Text(
+                                    theme.name,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: ProfileData.themeKey == AppThemeColors.nameToKey(theme.name)
+                                          ? FontWeight.bold
+                                          : FontWeight.w500,
+                                      color: ProfileData.themeKey == AppThemeColors.nameToKey(theme.name)
+                                          ? theme.primaryColor
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  // Selected indicator
+                                  if (ProfileData.themeKey == AppThemeColors.nameToKey(theme.name))
+                                    Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: theme.primaryColor,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.check,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Apply button
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        AppTheme.currentThemeKey = ProfileData.themeKey;
+                        Navigator.pop(context);
+                        
+                        // Force UI refresh
+                        setState(() {});
+                        // Force the entire profile page to rebuild
+                        this.setState(() {});
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppThemeColors.fromTheme(ProfileData.themeKey).primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'Apply Theme',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );

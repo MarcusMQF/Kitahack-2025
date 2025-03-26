@@ -33,7 +33,8 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
-
+  bool _pulseGrowing = true; // Animation direction state
+  
   final List<Widget> _pages = [
     const HomePage(),
     const MyTripPage(),
@@ -116,20 +117,76 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           height: 56,
           width: 56,
           decoration: BoxDecoration(
-            color: const Color(0xFF2196F3),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF2196F3), Color(0xFF1976D2)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withAlpha((0.1 * 255).round()),
-                blurRadius: 8,
+                color: const Color(0xFF2196F3).withAlpha((0.3 * 255).round()),
+                blurRadius: 12,
                 offset: const Offset(0, 5),
+                spreadRadius: -2,
               ),
             ],
           ),
-          child: const Icon(
-            Icons.qr_code_scanner,
-            color: Colors.white,
-            size: 28,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                _onItemTapped(index);
+              },
+              borderRadius: BorderRadius.circular(20),
+              splashColor: Colors.white.withOpacity(0.2),
+              highlightColor: Colors.white.withOpacity(0.1),
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Animated pulsing circle
+                    Builder(
+                      builder: (context) {
+                        return TweenAnimationBuilder<double>(
+                          tween: Tween<double>(
+                            begin: _pulseGrowing ? 0.0 : 1.6,
+                            end: _pulseGrowing ? 1.6 : 0.0,
+                          ),
+                          duration: const Duration(milliseconds: 1500),
+                          curve: Curves.easeInOut,
+                          builder: (context, value, child) {
+                            return Transform.scale(
+                              scale: value,
+                              child: Container(
+                                width: 46,
+                                height: 46,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.15),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            );
+                          },
+                          onEnd: () {
+                            // Flip the direction for continuous animation
+                            _pulseGrowing = !_pulseGrowing;
+                            setState(() {});
+                          },
+                        );
+                      },
+                    ),
+                    // QR code icon
+                    const Icon(
+                      Icons.qr_code_scanner,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),

@@ -261,18 +261,20 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                 const Text(
                                   'Hello,',
                                   style: TextStyle(
-                                    fontSize: 15, 
+                                    fontSize: 16, 
                                     fontWeight: FontWeight.bold,
                                     color: Colors.grey,
+                                    letterSpacing: 0.8,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  ProfileData.username.split(' ')[0], // Just show first name
+                                  ProfileData.username,
                                   style: const TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black87,
+                                    letterSpacing: 0.5,
                                   ),
                                 ),
                               ],
@@ -388,7 +390,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                                 ),
                                                 const SizedBox(height: 2),
                                                 const Text(
-                                                  'Keep the planet green!',
+                                                  'Less Traffic, Cleaner Air!',
                                                   style: TextStyle(
                                                     color: Colors.white70,
                                                     fontSize: 12,
