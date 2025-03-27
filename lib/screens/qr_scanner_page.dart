@@ -219,9 +219,12 @@ class _QRScannerPageState extends State<QRScannerPage> {
                               size: 20,
                             ),
                             onPressed: () {
+                              // Store context for use in async callback
+                              final scaffoldMessenger = ScaffoldMessenger.of(context);
+                              
                               Clipboard.setData(ClipboardData(text: code)).then((_) {
                                 if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
+                                  scaffoldMessenger.showSnackBar(
                                     const SnackBar(
                                       content: Text('Copied to clipboard'),
                                       duration: Duration(seconds: 2),

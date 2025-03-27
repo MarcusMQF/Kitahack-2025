@@ -155,6 +155,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   final weatherIcons = {
+    // Main conditions from OpenWeatherMap
     'Clear': '☀️',
     'Clouds': '⛅',
     'Drizzle': '🌦️',
@@ -169,12 +170,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     'Ash': '🌫️',
     'Squall': '💨',
     'Tornado': '🌪️',
+    
+    // More specific conditions based on weather descriptions
+    'FewClouds': '🌤️',
+    'BrokenClouds': '☁️',
+    'LightRain': '🌦️',
   };
   String currentWeather = '😊';
   String temperature = '28°C';
   String cityName = 'Loading...';
+  String weatherDescription = '';
   bool isExpanded = false;
-  final WeatherService _weatherService = WeatherService(apiKey: ApiKeys.weatherApiKey); // Use from ApiKeys class
+  final WeatherService _weatherService = WeatherService(apiKey: ApiKeys.weatherApiKey);
   bool _isLoading = true;
 
   @override
@@ -201,7 +208,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         setState(() {
           cityName = weather.cityName;
           temperature = '${weather.temperature.round()}°C';
-          currentWeather = weatherIcons[weather.weather] ?? '😊';
+          weatherDescription = weather.description;
+          
+          // Get appropriate weather icon based on both main condition and description
+          String iconKey = weather.getWeatherIconKey();
+          currentWeather = weatherIcons[iconKey] ?? '😊';
           _isLoading = false;
         });
       }
@@ -211,6 +222,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         setState(() {
           cityName = 'Error';
           temperature = 'N/A';
+          weatherDescription = '';
           currentWeather = '😊';
           _isLoading = false;
         });

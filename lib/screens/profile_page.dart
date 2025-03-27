@@ -472,14 +472,14 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
             width: 70,
             height: 70,
             decoration: BoxDecoration(
-              color: Colors.blue.shade700,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Center(
-              child: Icon(
-                Icons.account_balance_wallet,
-                color: Colors.white,
-                size: 34,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset(
+                'lib/images/tng2.png',
+                fit: BoxFit.cover,
               ),
             ),
           ),
