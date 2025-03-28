@@ -676,6 +676,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
   void _showEditUsernameDialog(BuildContext context) {
     final TextEditingController controller = TextEditingController(text: ProfileData.username);
+    final themeService = Provider.of<ThemeService>(context, listen: false);
+    final primaryColor = themeService.primaryColor;
     
     showDialog(
       context: context,
@@ -695,13 +697,9 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               // Header section with gradient
               Container(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 18),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF2196F3), Color(0xFF64B5F6)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.only(
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(24),
                     topRight: Radius.circular(24),
                   ),
@@ -746,10 +744,10 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Username',
                       style: TextStyle(
-                        color: Color(0xFF2196F3),
+                        color: primaryColor,
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
                       ),
@@ -775,15 +773,15 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                               Container(
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
-                                  color: Colors.blue.withAlpha(15),
+                                  color: primaryColor.withAlpha(15),
                                   borderRadius: const BorderRadius.only(
                                     topLeft: Radius.circular(15),
                                     bottomLeft: Radius.circular(15),
                                   ),
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.person,
-                                  color: Color(0xFF2196F3),
+                                  color: primaryColor,
                                   size: 22,
                                 ),
                               ),
@@ -884,7 +882,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2196F3),
+                        backgroundColor: primaryColor,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                         elevation: 2,

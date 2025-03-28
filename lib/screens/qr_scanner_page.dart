@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme.dart';
+import 'package:provider/provider.dart';
+import '../services/theme_service.dart';
 
 class QRScannerPage extends StatefulWidget {
   const QRScannerPage({super.key});
@@ -97,212 +99,214 @@ class _QRScannerPageState extends State<QRScannerPage> {
     );
     bool isUrl = urlRegExp.hasMatch(code);
     
+    // Get theme service to access theme colors
+    final themeService = Provider.of<ThemeService>(context, listen: false);
+    final primaryColor = themeService.primaryColor;
+    
     showDialog(
       context: context,
       builder: (context) => Dialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
         ),
-        elevation: 8,
-        child: Container(
-          width: double.infinity,
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.9,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header with gradient
-              Container(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 18),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppTheme.primaryBlue,
-                      AppTheme.secondaryBlue,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    spreadRadius: 0,
                   ),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(24),
-                    topRight: Radius.circular(24),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.check_circle,
-                        color: Colors.white,
-                        size: 28,
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                    decoration: BoxDecoration(
+                      color: primaryColor, // Use theme primary color
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(24),
+                        topRight: Radius.circular(24),
                       ),
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.check_circle,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const Text(
+                              'Successful Scan',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: () => Navigator.pop(context),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Content section
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Scanned Content:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Color(0xFF757575), // Grey color
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.grey.shade300,
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  code,
+                                  style: const TextStyle(
+                                    color: Color(0xFF757575), // Match original grey
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.copy,
+                                  color: primaryColor, // Use theme primary color
+                                  size: 20,
+                                ),
+                                padding: const EdgeInsets.all(8),
+                                onPressed: () {
+                                  // Store context for use in async callback
+                                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+                                  
+                                  Clipboard.setData(ClipboardData(text: code)).then((_) {
+                                    if (mounted) {
+                                      scaffoldMessenger.showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Copied to clipboard'),
+                                          duration: Duration(seconds: 2),
+                                          behavior: SnackBarBehavior.floating,
+                                        ),
+                                      );
+                                    }
+                                  });
+                                },
+                                tooltip: 'Copy to clipboard',
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        if (isUrl) ...[
+                          const SizedBox(height: 16),
                           const Text(
-                            'Successful Scan',
+                            'The scanned code contains a URL. Would you like to open it?',
                             style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            isUrl ? 'URL Detected' : 'QR Code Detected',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.8),
                               fontSize: 14,
+                              color: Color(0xFF757575), // Grey color
                             ),
                           ),
                         ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-              ),
-              
-              // Content section
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Scanned Content:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: AppTheme.primaryGrey,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.grey.shade300,
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              code,
-                              style: const TextStyle(
-                                color: AppTheme.secondaryGrey,
-                                fontSize: 14,
+                        
+                        const SizedBox(height: 24),
+                        
+                        // Action buttons at the bottom
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.grey.shade700,
                               ),
+                              child: const Text('CANCEL'),
                             ),
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.copy,
-                              color: AppTheme.primaryBlue,
-                              size: 20,
-                            ),
-                            onPressed: () {
-                              // Store context for use in async callback
-                              final scaffoldMessenger = ScaffoldMessenger.of(context);
-                              
-                              Clipboard.setData(ClipboardData(text: code)).then((_) {
-                                if (mounted) {
-                                  scaffoldMessenger.showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Copied to clipboard'),
-                                      duration: Duration(seconds: 2),
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
+                            const SizedBox(width: 16),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                if (isUrl) {
+                                  _launchUrl(code);
+                                } else {
+                                  // Handle check-in functionality here
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Check-in successful'),
+                                        duration: Duration(seconds: 2),
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  }
                                 }
-                              });
-                            },
-                            tooltip: 'Copy to clipboard',
-                          ),
-                        ],
-                      ),
-                    ),
-                    
-                    if (isUrl) ...[
-                      const SizedBox(height: 24),
-                      const Text(
-                        'The scanned code contains a URL. Would you like to open it?',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.secondaryGrey,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              
-              // Action buttons
-              Container(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton.icon(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.cancel_outlined, size: 18),
-                      label: const Text('Cancel'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppTheme.secondaryGrey,
-                      ),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        if (isUrl) {
-                          _launchUrl(code);
-                        } else {
-                          // Handle check-in functionality here
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Check-in successful'),
-                                duration: Duration(seconds: 2),
-                                behavior: SnackBarBehavior.floating,
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryColor, // Use theme primary color
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
-                            );
-                          }
-                        }
-                      },
-                      icon: Icon(
-                        isUrl ? Icons.open_in_browser : Icons.check_circle_outline,
-                        size: 18,
-                      ),
-                      label: Text(isUrl ? 'Open Link' : 'Check In'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryBlue,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      ),
+                              child: Text(isUrl ? 'OPEN LINK' : 'CHECK IN'),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -310,6 +314,10 @@ class _QRScannerPageState extends State<QRScannerPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Get theme service to access theme colors
+    final themeService = Provider.of<ThemeService>(context);
+    final primaryColor = themeService.primaryColor;
+    
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -418,7 +426,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryBlue,
+                          backgroundColor: primaryColor,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                           shape: RoundedRectangleBorder(
