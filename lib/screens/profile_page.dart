@@ -3,6 +3,10 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:math' as math;
 import '../utils/app_theme.dart'; // Import theme utilities
+import 'package:provider/provider.dart';
+import '../services/rewards_service.dart';
+import '../services/theme_service.dart'; // Add theme service import
+import 'reward_page.dart';
 
 // Class to store shared profile data
 class ProfileData {
@@ -11,7 +15,6 @@ class ProfileData {
   static String email = 'marcus.t@example.com';
   static bool notificationsEnabled = true;
   static String paymentAccountName = 'MARCUS'; // Separate payment account name
-  static String themeKey = 'blue'; // Default theme
 }
 
 class ProfilePage extends StatefulWidget {
@@ -82,8 +85,9 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    // Use the current theme colors for the profile header gradient
-    final themeColors = AppThemeColors.fromTheme(AppTheme.currentThemeKey);
+    // Use the theme service instead of AppTheme
+    final themeService = Provider.of<ThemeService>(context);
+    final themeColors = AppThemeColors.fromTheme(themeService.currentThemeKey);
     
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
@@ -382,7 +386,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                           width: 20,
                           height: 20,
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryColor,
+                            color: AppThemeColors.fromTheme(themeService.currentThemeKey).primaryColor,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
@@ -395,7 +399,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          AppThemeColors.fromTheme(ProfileData.themeKey).name,
+                          AppThemeColors.fromTheme(themeService.currentThemeKey).name,
                           style: TextStyle(
                             color: Colors.grey.shade600,
                             fontSize: 14,
@@ -469,8 +473,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       child: Row(
         children: [
           Container(
-            width: 70,
-            height: 70,
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
@@ -519,7 +523,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                     'Verified',
                     style: TextStyle(
                       color: Colors.green,
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -534,55 +538,70 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   
   // Points card
   Widget _buildPointsCard() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha((0.05 * 255).round()),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text(
-            'Reward',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
+    return Consumer<RewardsService>(
+      builder: (context, rewardsService, child) {
+        return InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const RewardPage(),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha((0.05 * 255).round()),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Reward',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.monetization_on,
+                      color: Colors.amber.shade700,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${_formatNumber(rewardsService.points)} pts',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.amber.shade700,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: Colors.grey,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          Row(
-            children: [
-              Icon(
-                Icons.monetization_on,
-                color: Colors.amber.shade700,
-                size: 18,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '3,250 pts',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.amber.shade700,
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Icon(
-                Icons.chevron_right,
-                color: Colors.grey,
-              ),
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
   
@@ -613,7 +632,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       child: ListTile(
         leading: Icon(
           icon,
-          color: textColor ?? AppTheme.accentColor,
+          color: textColor ?? AppThemeColors.fromTheme(Provider.of<ThemeService>(context).currentThemeKey).primaryColor,
           size: 26,
         ),
         title: Text(
@@ -892,6 +911,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
   // Show theme selector dialog
   void _showThemeSelector() {
+    final themeService = Provider.of<ThemeService>(context, listen: false);
+    
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -918,8 +939,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          AppThemeColors.fromTheme(ProfileData.themeKey).primaryColor,
-                          AppThemeColors.fromTheme(ProfileData.themeKey).secondaryColor,
+                          AppThemeColors.fromTheme(themeService.currentThemeKey).primaryColor,
+                          AppThemeColors.fromTheme(themeService.currentThemeKey).secondaryColor,
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -981,22 +1002,22 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                             onTap: () {
                               setState(() {
                                 // Use the helper function for consistent key conversion
-                                ProfileData.themeKey = AppThemeColors.nameToKey(theme.name);
+                                themeService.setTheme(AppThemeColors.nameToKey(theme.name));
                               });
                             },
                             child: Container(
                               margin: const EdgeInsets.only(bottom: 12),
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                               decoration: BoxDecoration(
-                                color: ProfileData.themeKey == AppThemeColors.nameToKey(theme.name)
+                                color: themeService.currentThemeKey == AppThemeColors.nameToKey(theme.name)
                                     ? theme.primaryColor.withOpacity(0.1)
                                     : Colors.white,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: ProfileData.themeKey == AppThemeColors.nameToKey(theme.name)
+                                  color: themeService.currentThemeKey == AppThemeColors.nameToKey(theme.name)
                                       ? theme.primaryColor
                                       : Colors.grey.shade200,
-                                  width: ProfileData.themeKey == AppThemeColors.nameToKey(theme.name)
+                                  width: themeService.currentThemeKey == AppThemeColors.nameToKey(theme.name)
                                       ? 2
                                       : 1,
                                 ),
@@ -1029,17 +1050,17 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                                     theme.name,
                                     style: TextStyle(
                                       fontSize: 16,
-                                      fontWeight: ProfileData.themeKey == AppThemeColors.nameToKey(theme.name)
+                                      fontWeight: themeService.currentThemeKey == AppThemeColors.nameToKey(theme.name)
                                           ? FontWeight.bold
                                           : FontWeight.w500,
-                                      color: ProfileData.themeKey == AppThemeColors.nameToKey(theme.name)
+                                      color: themeService.currentThemeKey == AppThemeColors.nameToKey(theme.name)
                                           ? theme.primaryColor
                                           : Colors.black87,
                                     ),
                                   ),
                                   const Spacer(),
                                   // Selected indicator
-                                  if (ProfileData.themeKey == AppThemeColors.nameToKey(theme.name))
+                                  if (themeService.currentThemeKey == AppThemeColors.nameToKey(theme.name))
                                     Container(
                                       padding: const EdgeInsets.all(4),
                                       decoration: BoxDecoration(
@@ -1065,16 +1086,10 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                     child: ElevatedButton(
                       onPressed: () {
-                        AppTheme.currentThemeKey = ProfileData.themeKey;
                         Navigator.pop(context);
-                        
-                        // Force UI refresh
-                        setState(() {});
-                        // Force the entire profile page to rebuild
-                        this.setState(() {});
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppThemeColors.fromTheme(ProfileData.themeKey).primaryColor,
+                        backgroundColor: themeService.primaryColor,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -1097,6 +1112,14 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           },
         ),
       ),
+    );
+  }
+
+  // Helper method to format numbers with commas
+  String _formatNumber(int number) {
+    return number.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), 
+      (Match m) => '${m[1]},'
     );
   }
 }

@@ -7,6 +7,10 @@ import '../models/weather_model.dart';
 import '../services/weather_service.dart';
 import '../components/animated_progress_bar.dart';
 import '../utils/api_keys.dart'; // Import API keys utilities
+import 'package:provider/provider.dart';
+import '../services/rewards_service.dart';
+import '../services/theme_service.dart'; // Add theme service import
+import 'reward_page.dart';
 
 class Particle {
   double x;
@@ -238,6 +242,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
+    final rewardsService = Provider.of<RewardsService>(context);
+    final themeService = Provider.of<ThemeService>(context); // Add ThemeService
+    final points = rewardsService.points;
+    final currentRank = rewardsService.currentRank;
+    final nextRank = rewardsService.nextRank;
+    final progressToNext = rewardsService.progressToNextRank;
+    final pointsToNext = rewardsService.pointsToNextRank;
+    
+    // Get theme colors
+    final primaryColor = themeService.primaryColor;
+    final secondaryColor = themeService.secondaryColor;
+    
     return Container(
       color: Colors.white,
       child: Scaffold(
@@ -318,15 +334,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                       // Fallback to default if any error with the file
                                       return CircleAvatar(
                                         radius: 24,
-                                        backgroundColor: Colors.blue.withAlpha((0.2 * 255).round()),
-                                        child: const Icon(Icons.person, color: Colors.blue, size: 26),
+                                        backgroundColor: primaryColor.withAlpha((0.2 * 255).round()),
+                                        child: Icon(Icons.person, color: primaryColor, size: 26),
                                       );
                                     }
                                   } else {
                                     return CircleAvatar(
                                       radius: 24,
-                                      backgroundColor: Colors.blue.withAlpha((0.2 * 255).round()),
-                                      child: const Icon(Icons.person, color: Colors.blue, size: 26),
+                                      backgroundColor: primaryColor.withAlpha((0.2 * 255).round()),
+                                      child: Icon(Icons.person, color: primaryColor, size: 26),
                                     );
                                   }
                                 }
@@ -350,15 +366,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                 height: isExpanded ? 290 : 230,
                                 padding: const EdgeInsets.all(18),
                                 decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [Color(0xFF2196F3), Color(0xFF64B5F6)],
+                                  gradient: LinearGradient(
+                                    colors: [primaryColor, secondaryColor],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                   ),
                                   borderRadius: BorderRadius.circular(24),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.blue.withAlpha(60),
+                                      color: primaryColor.withAlpha(60),
                                       blurRadius: 20,
                                       offset: const Offset(0, 8),
                                       spreadRadius: -4,
@@ -463,14 +479,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                                       color: Colors.white.withAlpha(40),
                                                       borderRadius: BorderRadius.circular(20),
                                                     ),
-                                                    child: const Row(
+                                                    child: Row(
                                                       mainAxisAlignment: MainAxisAlignment.center,
                                                       children: [
-                                                        Icon(Icons.eco, color: Colors.white, size: 14),
-                                                        SizedBox(width: 4),
+                                                        Icon(
+                                                          Icons.emoji_events, 
+                                                          color: currentRank.color, // Dynamic color based on rank
+                                                          size: 14
+                                                        ),
+                                                        const SizedBox(width: 4),
                                                         Text(
-                                                          'Level 2',
-                                                          style: TextStyle(
+                                                          currentRank.name, // Dynamic rank name
+                                                          style: const TextStyle(
                                                             color: Colors.white,
                                                             fontSize: 12,
                                                             fontWeight: FontWeight.bold,
@@ -488,52 +508,102 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                         // Points display
                                         Padding(
                                           padding: const EdgeInsets.only(top: 20, bottom: 10),
-                                          child: TweenAnimationBuilder<double>(
-                                            tween: Tween<double>(begin: 0, end: 1),
-                                            duration: const Duration(milliseconds: 800),
-                                            curve: Curves.easeOutCubic,
-                                            builder: (context, value, child) {
-                                              return Transform.scale(
-                                                scale: 0.6 + (value * 0.4), // Scale from 0.6 to 1.0 instead of 0 to 1
-                                                child: child,
-                                              );
+                                          child: GestureDetector(
+                                            onLongPress: () {
+                                              _showPointsTestDialog(context, rewardsService);
                                             },
-                                            child: const Row(
-                                              crossAxisAlignment: CrossAxisAlignment.end,
-                                              children: [
-                                                Text(
-                                                  '3,250',
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 40,
-                                                    fontWeight: FontWeight.bold,
-                                                    height: 0.9,
+                                            child: TweenAnimationBuilder<double>(
+                                              tween: Tween<double>(begin: 0, end: 1),
+                                              duration: const Duration(milliseconds: 800),
+                                              curve: Curves.easeOutCubic,
+                                              builder: (context, value, child) {
+                                                return Transform.scale(
+                                                  scale: 0.6 + (value * 0.4), // Scale from 0.6 to 1.0 instead of 0 to 1
+                                                  child: Row(
+                                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                                    children: [
+                                                      Text(
+                                                        '${points.toStringAsFixed(0)}',
+                                                        style: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 40,
+                                                          fontWeight: FontWeight.bold,
+                                                          height: 0.9,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 4),
+                                                      const Padding(
+                                                        padding: EdgeInsets.only(bottom: 6),
+                                                        child: Text(
+                                                          'pts',
+                                                          style: TextStyle(
+                                                            color: Colors.white70,
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.w500,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
-                                                ),
-                                                SizedBox(width: 4),
-                                                Padding(
-                                                  padding: EdgeInsets.only(bottom: 6),
-                                                  child: Text(
-                                                    'Points',
-                                                    style: TextStyle(
-                                                      color: Colors.white70,
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
+                                                );
+                                              },
                                             ),
                                           ),
                                         ),
                                         
                                         // Progress indicator (shown only when expanded)
-                                        AnimatedProgressBar(
-                                          progress: 0.75, // 75% progress (3250 out of 4000)
-                                          maxValue: 4000, // Target value
-                                          currentValue: 3250, // Current points
-                                          isExpanded: isExpanded,
-                                        ),
+                                        if (nextRank != null) 
+                                          AnimatedProgressBar(
+                                            progress: progressToNext, // Dynamic progress
+                                            maxValue: nextRank.pointsRequired.toDouble(),
+                                            currentValue: points.toDouble(),
+                                            isExpanded: isExpanded,
+                                            leftLabel: 'Need $pointsToNext more pts to ${nextRank.name}',
+                                            rightLabel: '${nextRank.name}: ${nextRank.pointsRequired}',
+                                          )
+                                        else 
+                                          // Custom display for highest rank achieved
+                                          AnimatedCrossFade(
+                                            firstChild: const SizedBox(height: 0),
+                                            secondChild: Container(
+                                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  const Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.workspace_premium,
+                                                        color: Colors.white70,
+                                                        size: 16,
+                                                      ),
+                                                      SizedBox(width: 6),
+                                                      Text(
+                                                        'Highest rank achieved!',
+                                                        style: TextStyle(
+                                                          color: Colors.white70,
+                                                          fontSize: 14,
+                                                          fontWeight: FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  Text(
+                                                    '${currentRank.pointsRequired}',
+                                                    style: const TextStyle(
+                                                      color: Colors.white70,
+                                                      fontSize: 14,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            crossFadeState: isExpanded
+                                              ? CrossFadeState.showSecond
+                                              : CrossFadeState.showFirst,
+                                            duration: const Duration(milliseconds: 300),
+                                          ),
                                         
                                         // Spacer that adapts to the expanded state - adjust to keep buttons aligned with bottom
                                         const Expanded(
@@ -561,23 +631,31 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                                   child: Material(
                                                     color: Colors.transparent,
                                                     child: InkWell(
-                                                      onTap: () {},
+                                                      onTap: () {
+                                                        // Navigate to the rewards page with tab index 1 (Rewards)
+                                                        Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (context) => const RewardPage(),
+                                                          ),
+                                                        );
+                                                      },
                                                       borderRadius: BorderRadius.circular(16),
                                                       child: Padding(
                                                         padding: const EdgeInsets.symmetric(vertical: 14.0),
                                                         child: Row(
                                                           mainAxisAlignment: MainAxisAlignment.center,
                                                           children: [
-                                                            const Icon(
+                                                            Icon(
                                                               Icons.wallet_giftcard, 
-                                                              color: Colors.blue, 
+                                                              color: Provider.of<ThemeService>(context).primaryColor, 
                                                               size: 20,
                                                             ),
                                                             const SizedBox(width: 8),
                                                             Text(
                                                               'Redeem',
                                                               style: TextStyle(
-                                                                color: Colors.blue.shade800,
+                                                                color: Provider.of<ThemeService>(context).accentColor,
                                                                 fontSize: 14,
                                                                 fontWeight: FontWeight.bold,
                                                               ),
@@ -615,14 +693,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                                           children: [
                                                             Icon(
                                                               Icons.history, 
-                                                              color: Colors.blue.shade700, 
+                                                              color: Provider.of<ThemeService>(context).primaryColor, 
                                                               size: 20,
                                                             ),
                                                             const SizedBox(width: 8),
                                                             Text(
                                                               'History',
                                                               style: TextStyle(
-                                                                color: Colors.blue.shade800,
+                                                                color: Provider.of<ThemeService>(context).accentColor,
                                                                 fontSize: 14,
                                                                 fontWeight: FontWeight.bold,
                                                               ),
@@ -657,7 +735,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                 width: 5,
                                 height: 24,
                                 decoration: BoxDecoration(
-                                  color: Colors.blue.shade600,
+                                  color: primaryColor,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
@@ -706,7 +784,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                         
                         const SizedBox(height: 32),
                         
-                        // Nearby buses section
+                        // Nearby buses section with theme colors
                         Padding(
                           padding: const EdgeInsets.only(bottom: 16),
                           child: Row(
@@ -718,7 +796,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                     width: 5,
                                     height: 24,
                                     decoration: BoxDecoration(
-                                      color: Colors.blue.shade600,
+                                      color: themeService.primaryColor,
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                   ),
@@ -736,10 +814,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: Colors.blue.shade50,
+                                  color: themeService.primaryColor.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
-                                    color: Colors.blue.shade100,
+                                    color: themeService.primaryColor.withOpacity(0.3),
                                     width: 1,
                                   ),
                                 ),
@@ -749,7 +827,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                       width: 6,
                                       height: 6,
                                       decoration: BoxDecoration(
-                                        color: Colors.blue,
+                                        color: themeService.primaryColor,
                                         borderRadius: BorderRadius.circular(3),
                                       ),
                                     ),
@@ -757,7 +835,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                     Text(
                                       'Live updates',
                                       style: TextStyle(
-                                        color: Colors.blue.shade700,
+                                        color: themeService.primaryColor,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 12,
                                       ),
@@ -790,7 +868,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                         
                         const SizedBox(height: 32),
                         
-                        // Recent trips
+                        // Recent trips section with theme colors
                         Padding(
                           padding: const EdgeInsets.only(bottom: 16),
                           child: Row(
@@ -802,7 +880,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                     width: 5,
                                     height: 24,
                                     decoration: BoxDecoration(
-                                      color: Colors.blue.shade600,
+                                      color: themeService.primaryColor,
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                   ),
@@ -820,13 +898,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: Colors.blue.shade50,
+                                  color: themeService.primaryColor.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
                                   'See All',
                                   style: TextStyle(
-                                    color: Colors.blue.shade700,
+                                    color: themeService.primaryColor,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 12,
                                   ),
@@ -874,6 +952,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     required Color color,
     required VoidCallback onTap,
   }) {
+    // Use theme color for shadows to maintain consistency
+    final themeService = Provider.of<ThemeService>(context, listen: false);
+    // ignore: unused_local_variable
+    final primaryColor = themeService.primaryColor;
+    
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -938,6 +1021,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     required String distance,
     required bool isPulsing,
   }) {
+    final themeService = Provider.of<ThemeService>(context);
+    final primaryColor = themeService.primaryColor;
+    
     Color crowdColor;
     if (crowdLevel == 'Low') {
       crowdColor = Colors.green;
@@ -975,11 +1061,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               height: 44,
               padding: const EdgeInsets.all(0),
               decoration: BoxDecoration(
-                color: Colors.blue.withAlpha((0.1 * 255).round()),
+                color: primaryColor.withAlpha((0.1 * 255).round()),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.blue.withAlpha((0.2 * 255).round()),
+                    color: primaryColor.withAlpha((0.2 * 255).round()),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                     spreadRadius: -2,
@@ -1004,9 +1090,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                         child: Center(
                           child: Text(
                             displayBusNumber,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue,
+                              color: primaryColor,
                               fontSize: 20,
                             ),
                           ),
@@ -1017,9 +1103,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 : Center(
                     child: Text(
                       displayBusNumber,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+                        color: primaryColor,
                         fontSize: 20,
                       ),
                     ),
@@ -1044,10 +1130,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: isPulsing ? Colors.blue.shade50 : Colors.grey.shade50,
+                          color: isPulsing ? primaryColor.withOpacity(0.1) : Colors.grey.shade50,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isPulsing ? Colors.blue.shade100 : Colors.grey.shade200,
+                            color: isPulsing ? primaryColor.withOpacity(0.3) : Colors.grey.shade200,
                             width: 1,
                           ),
                         ),
@@ -1056,7 +1142,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: isPulsing ? Colors.blue.shade700 : Colors.grey.shade600,
+                            color: isPulsing ? primaryColor : Colors.grey.shade600,
                           ),
                         ),
                       ),
@@ -1098,11 +1184,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: isPulsing ? Colors.blue.shade600 : Colors.blue.shade50,
+                    color: isPulsing ? primaryColor : primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: isPulsing ? [
                       BoxShadow(
-                        color: Colors.blue.withAlpha((0.2 * 255).round()),
+                        color: primaryColor.withAlpha((0.2 * 255).round()),
                         blurRadius: 6,
                         offset: const Offset(0, 3),
                         spreadRadius: -2,
@@ -1131,12 +1217,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                               );
                             },
                           )
-                        : Icon(Icons.timer, color: Colors.blue.shade600, size: 14),
+                        : Icon(Icons.timer, color: primaryColor, size: 14),
                       const SizedBox(width: 4),
                       Text(
                         time,
                         style: TextStyle(
-                          color: isPulsing ? Colors.white : Colors.blue.shade600,
+                          color: isPulsing ? Colors.white : primaryColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
                         ),
@@ -1185,6 +1271,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     required String time,
     required String points,
   }) {
+    final themeService = Provider.of<ThemeService>(context);
+    final primaryColor = themeService.primaryColor;
+    
     return InkWell(
       onTap: () {},
       borderRadius: BorderRadius.circular(16),
@@ -1210,21 +1299,21 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               height: 44,
               padding: const EdgeInsets.all(0),
               decoration: BoxDecoration(
-                color: Colors.blue.withAlpha((0.1 * 255).round()),
+                color: primaryColor.withAlpha((0.1 * 255).round()),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.blue.withAlpha((0.2 * 255).round()),
+                    color: primaryColor.withAlpha((0.2 * 255).round()),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                     spreadRadius: -2,
                   ),
                 ],
               ),
-              child: const Center(
+              child: Center(
                 child: Icon(
                   Icons.directions_bus_filled,
-                  color: Colors.blue,
+                  color: primaryColor,
                   size: 20,
                 ),
               ),
@@ -1262,7 +1351,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                       const SizedBox(width: 8),
                       Text(
                         time,
-              style: TextStyle(
+                        style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 12,
                         ),
@@ -1282,7 +1371,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 points,
                 style: const TextStyle(
                   color: Colors.green,
-                fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
@@ -1293,6 +1382,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
   
   Widget _buildCityscapeBanner() {
+    final themeService = Provider.of<ThemeService>(context);
+    final primaryColor = themeService.primaryColor;
+    final accentColor = themeService.accentColor;
+    
+    // Create darker versions of the primary color
+    final darkerPrimary = Color.fromARGB(
+      255,
+      (primaryColor.red * 0.7).round(),
+      (primaryColor.green * 0.7).round(),
+      (primaryColor.blue * 0.7).round()
+    );
+    
     return Container(
       width: double.infinity,
       height: 180,
@@ -1306,8 +1407,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             spreadRadius: -4,
           ),
         ],
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1976D2), Color(0xFF64B5F6)],
+        gradient: LinearGradient(
+          colors: [primaryColor, accentColor],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -1322,9 +1423,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Colors.blue.shade800,
-                      Colors.blue.shade600,
-                      Colors.blue.shade300,
+                      darkerPrimary,
+                      primaryColor,
+                      accentColor,
                     ],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
@@ -1346,7 +1447,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   // Fallback if image fails to load
                   return Container(
                     height: 140,
-                    color: Colors.blue.shade900,
+                    color: darkerPrimary,
                     child: const Center(
                       child: Icon(
                         Icons.location_city,
@@ -1412,10 +1513,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                         ),
                       ],
                     ),
-                    child: const Text(
+                    child: Text(
                       'Explore Now',
                       style: TextStyle(
-                        color: Colors.blue,
+                        color: primaryColor,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
@@ -1427,6 +1528,125 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ],
         ),
       ),
+    );
+  }
+
+  void _showPointsTestDialog(BuildContext context, RewardsService rewardsService) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Test Rewards System'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Set points to test different rank levels:'),
+              const SizedBox(height: 16),
+              _buildPointsButton(context, 'Bronze', 0, rewardsService),
+              const SizedBox(height: 8),
+              _buildPointsButton(context, 'Silver', 5000, rewardsService),
+              const SizedBox(height: 8),
+              _buildPointsButton(context, 'Gold', 15000, rewardsService),
+              const SizedBox(height: 8),
+              _buildPointsButton(context, 'Platinum', 30000, rewardsService),
+              const SizedBox(height: 8),
+              _buildPointsButton(context, 'Diamond', 50000, rewardsService),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: () {
+                  // Set custom points value
+                  final pointsController = TextEditingController();
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text('Enter Custom Points'),
+                        content: TextField(
+                          controller: pointsController,
+                          decoration: const InputDecoration(
+                            labelText: 'Points',
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: const Text('Cancel'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              final points = int.tryParse(pointsController.text);
+                              if (points != null) {
+                                rewardsService.setPoints(points);
+                                Navigator.pop(context);
+                                Navigator.pop(context);
+                              }
+                            },
+                            child: const Text('Set'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.blue,
+                  minimumSize: const Size(double.infinity, 45),
+                ),
+                child: const Text('Custom Points'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildPointsButton(BuildContext context, String rank, int points, RewardsService rewardsService) {
+    // Get color based on rank
+    Color rankColor;
+    switch (rank) {
+      case 'Bronze':
+        rankColor = const Color(0xFFCD7F32);
+        break;
+      case 'Silver':
+        rankColor = const Color(0xFFC0C0C0);
+        break;
+      case 'Gold':
+        rankColor = const Color(0xFFDAA520);
+        break;
+      case 'Platinum':
+        rankColor = const Color(0xFF3F51B5);
+        break;
+      case 'Diamond':
+        rankColor = const Color(0xFF9C27B0);
+        break;
+      default:
+        rankColor = Colors.blue;
+    }
+
+    return ElevatedButton(
+      onPressed: () {
+        rewardsService.setPoints(points);
+        Navigator.pop(context);
+      },
+      style: ElevatedButton.styleFrom(
+        foregroundColor: Colors.white,
+        backgroundColor: rankColor,
+        minimumSize: const Size(double.infinity, 45),
+      ),
+      child: Text('$rank ($points pts)'),
     );
   }
 }

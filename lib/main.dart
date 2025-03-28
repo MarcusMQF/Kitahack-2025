@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'screens/home_page.dart';
 import 'screens/route_page.dart';
 import 'screens/reward_page.dart';
 import 'screens/my_trip_page.dart';
 import 'screens/qr_scanner_page.dart';
-import 'theme.dart';
+import 'utils/app_theme.dart';
+import 'services/rewards_service.dart';
+import 'services/theme_service.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => RewardsService()),
+        ChangeNotifierProvider(create: (_) => ThemeService()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -15,11 +26,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Transit Go',
-      theme: AppTheme.themeData,
-      home: const MainNavigationScreen(),
+    return Consumer<ThemeService>(
+      builder: (context, themeService, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Transit Go',
+          theme: AppTheme.currentTheme,
+          home: const MainNavigationScreen(),
+        );
+      },
     );
   }
 }
@@ -60,6 +75,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   Widget _buildNavItem(IconData icon, String label, int index) {
+    // Get theme service for color
+    final themeService = Provider.of<ThemeService>(context);
+    final primaryColor = themeService.primaryColor;
+    
     // Determine if this nav item is selected
     bool isSelected;
     if (index < 2) {
@@ -78,7 +97,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               scale: isSelected ? 1.2 : 1.0,
               child: Icon(
                 icon,
-                color: isSelected ? Colors.blue : Colors.grey.shade600,
+                color: isSelected ? primaryColor : Colors.grey.shade600,
                 size: isSelected ? 24 : 22,
               ),
             ),
@@ -88,7 +107,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             duration: const Duration(milliseconds: 200),
             style: TextStyle(
               fontSize: 11,
-              color: isSelected ? Colors.blue : Colors.grey.shade600,
+              color: isSelected ? primaryColor : Colors.grey.shade600,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
             child: Text(label),
@@ -99,7 +118,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             width: isSelected ? 20 : 0,
             height: 3,
             decoration: BoxDecoration(
-              color: Colors.blue,
+              color: primaryColor,
               borderRadius: BorderRadius.circular(10),
             ),
           ),
@@ -110,6 +129,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   Widget _buildScanButton(int index) {
+    // Get theme service for colors
+    final themeService = Provider.of<ThemeService>(context);
+    final primaryColor = themeService.primaryColor;
+    final accentColor = themeService.accentColor;
+    
     return NavigationDestination(
       icon: Transform.translate(
         offset: const Offset(0, -22), // Keep the same offset to maintain position
@@ -117,15 +141,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           height: 56,
           width: 56,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF2196F3), Color(0xFF1976D2)],
+            gradient: LinearGradient(
+              colors: [primaryColor, accentColor],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF2196F3).withAlpha((0.3 * 255).round()),
+                color: primaryColor.withAlpha((0.3 * 255).round()),
                 blurRadius: 12,
                 offset: const Offset(0, 5),
                 spreadRadius: -2,
