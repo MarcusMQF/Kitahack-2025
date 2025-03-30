@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:math' show sin, pi;
 import '../models/reward_item.dart';
 import '../services/rewards_service.dart';
 import '../services/theme_service.dart';
@@ -150,7 +151,7 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
 
   Widget _buildFilterChip(RewardCategory? category, String label) {
     final isSelected = _selectedCategory == category;
-    final themeService = Provider.of<ThemeService>(context);
+    final themeService = Provider.of<ThemeService>(context, listen: false);
     final primaryColor = themeService.primaryColor;
     
     return Padding(
@@ -167,6 +168,13 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
         checkmarkColor: Colors.white,
         onSelected: (selected) {
           setState(() {
+            if (category == RewardCategory.exclusive) {
+              final rewardsService = Provider.of<RewardsService>(context, listen: false);
+              if (rewardsService.currentRank.id != 'diamond') {
+                _showDiamondLockOverlay();
+                return;
+              }
+            }
             _selectedCategory = selected ? category : null;
           });
         },
@@ -178,6 +186,129 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
           ),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 4),
+      ),
+    );
+  }
+
+  void _showDiamondLockOverlay() {
+    final themeService = Provider.of<ThemeService>(context, listen: false);
+    final primaryColor = themeService.primaryColor;
+    
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        elevation: 0,
+        backgroundColor: Colors.white,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Lock animation
+              TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 0.0, end: 1.0),
+                duration: const Duration(seconds: 2),
+                curve: Curves.elasticOut,
+                builder: (context, value, child) {
+                  return Transform.scale(
+                    scale: 0.9 + (0.1 * value),
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0.0, end: 1.0),
+                      duration: const Duration(milliseconds: 1500),
+                      curve: Curves.easeInOut,
+                      builder: (context, pulseValue, child) {
+                        return Transform.scale(
+                          scale: 1 + 0.05 * sin(pulseValue * 6 * pi),
+                          child: Container(
+                            height: 120,
+                            width: 120,
+                            decoration: BoxDecoration(
+                              color: primaryColor.withOpacity(0.15),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: primaryColor.withOpacity(0.3),
+                                  blurRadius: 12,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.lock,
+                                    size: 60,
+                                    color: primaryColor,
+                                  ),
+                                  Positioned(
+                                    top: 15,
+                                    child: TweenAnimationBuilder<double>(
+                                      tween: Tween<double>(begin: 0.0, end: 1.0),
+                                      duration: const Duration(milliseconds: 1000),
+                                      curve: Curves.elasticOut,
+                                      builder: (context, rotateValue, child) {
+                                        return Transform.rotate(
+                                          angle: rotateValue * 2 * pi,
+                                          child: Icon(
+                                            Icons.workspace_premium,
+                                            size: 24,
+                                            color: Colors.amber,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Premium Content Locked',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Reach Diamond rank to unlock these premium rewards!',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                child: const Text('OK, I understand'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -580,7 +711,7 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
 
   Widget _buildBottomSheetFilterChip(RewardCategory? category, String label, StateSetter setState) {
     final isSelected = _selectedCategory == category;
-    final themeService = Provider.of<ThemeService>(context);
+    final themeService = Provider.of<ThemeService>(context, listen: false);
     final primaryColor = themeService.primaryColor;
     
     return FilterChip(
@@ -595,6 +726,14 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
       checkmarkColor: Colors.white,
       onSelected: (selected) {
         setState(() {
+          if (category == RewardCategory.exclusive) {
+            final rewardsService = Provider.of<RewardsService>(context, listen: false);
+            if (rewardsService.currentRank.id != 'diamond') {
+              Navigator.pop(context); // Close the bottom sheet first
+              _showDiamondLockOverlay();
+              return;
+            }
+          }
           _selectedCategory = selected ? category : null;
         });
         this.setState(() {}); // Update the main state as well

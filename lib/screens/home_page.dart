@@ -6,7 +6,7 @@ import 'dart:io';
 import '../models/weather_model.dart';
 import '../services/weather_service.dart';
 import '../components/animated_progress_bar.dart';
-import '../utils/api_keys.dart'; // Import API keys utilities
+import '../config/api_keys.dart'; // Import API keys from config
 import 'package:provider/provider.dart';
 import '../services/rewards_service.dart';
 import '../services/theme_service.dart'; // Add theme service import
@@ -185,7 +185,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   String cityName = 'Loading...';
   String weatherDescription = '';
   bool isExpanded = false;
-  final WeatherService _weatherService = WeatherService(apiKey: ApiKeys.weatherApiKey);
+  final WeatherService _weatherService = WeatherService(apiKey: ApiKeys.openWeatherApiKey);
   bool _isLoading = true;
 
   @override
@@ -523,7 +523,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                                     crossAxisAlignment: CrossAxisAlignment.end,
                                                     children: [
                                                       Text(
-                                                        '${points.toStringAsFixed(0)}',
+                                                        points.toStringAsFixed(0),
                                                         style: const TextStyle(
                                                           color: Colors.white,
                                                           fontSize: 40,
@@ -1386,12 +1386,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final primaryColor = themeService.primaryColor;
     final accentColor = themeService.accentColor;
     
-    // Create darker versions of the primary color
-    final darkerPrimary = Color.fromARGB(
+    // Create lighter versions of the primary color for a more vibrant gradient
+    final lighterPrimary = Color.fromARGB(
       255,
-      (primaryColor.red * 0.7).round(),
-      (primaryColor.green * 0.7).round(),
-      (primaryColor.blue * 0.7).round()
+      primaryColor.red + ((255 - primaryColor.red) * 0.3).round(),
+      primaryColor.green + ((255 - primaryColor.green) * 0.3).round(),
+      primaryColor.blue + ((255 - primaryColor.blue) * 0.3).round(),
     );
     
     return Container(
@@ -1408,7 +1408,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
         ],
         gradient: LinearGradient(
-          colors: [primaryColor, accentColor],
+          colors: [lighterPrimary, primaryColor, accentColor],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -1417,18 +1417,47 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         borderRadius: BorderRadius.circular(16),
         child: Stack(
           children: [
-            // Background gradient
+            // Background gradient - using more vibrant colors
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      darkerPrimary,
+                      lighterPrimary,
                       primaryColor,
                       accentColor,
                     ],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
+                  ),
+                ),
+              ),
+            ),
+            
+            // Add a subtle animated overlay for some visual interest
+            Positioned.fill(
+              child: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return LinearGradient(
+                    colors: [
+                      Colors.white.withOpacity(0.1),
+                      Colors.white.withOpacity(0.05),
+                      Colors.white.withOpacity(0.0),
+                    ],
+                    stops: const [0.0, 0.5, 1.0],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ).createShader(bounds);
+                },
+                blendMode: BlendMode.srcOver,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        Colors.transparent,
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -1447,7 +1476,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   // Fallback if image fails to load
                   return Container(
                     height: 140,
-                    color: darkerPrimary,
+                    color: Colors.transparent,
                     child: const Center(
                       child: Icon(
                         Icons.location_city,

@@ -101,6 +101,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
+        scrolledUnderElevation: 0, // Prevent elevation change when scrolling
       ),
       extendBodyBehindAppBar: true,
       body: Column(

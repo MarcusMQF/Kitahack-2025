@@ -4,6 +4,8 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:label="transit_go_app"
         android:name="${applicationName}"
@@ -35,6 +37,9 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyB7CcobaXgTjKpctqRVlsS9RipWMMXl27g"/>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

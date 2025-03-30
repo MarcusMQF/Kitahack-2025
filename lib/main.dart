@@ -8,6 +8,9 @@ import 'screens/qr_scanner_page.dart';
 import 'utils/app_theme.dart';
 import 'services/rewards_service.dart';
 import 'services/theme_service.dart';
+import 'services/location_service.dart';
+import 'services/place_service.dart';
+import 'services/favorites_service.dart';
 
 void main() {
   runApp(
@@ -15,6 +18,11 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => RewardsService()),
         ChangeNotifierProvider(create: (_) => ThemeService()),
+        ChangeNotifierProvider(create: (_) => LocationService()),
+        ChangeNotifierProvider(create: (_) => FavoritesService()),
+        Provider<PlaceService>(
+          create: (_) => PlaceService(apiKey: 'AIzaSyB7CcobaXgTjKpctqRVlsS9RipWMMXl27g'),
+        ),
       ],
       child: const MyApp(),
     ),

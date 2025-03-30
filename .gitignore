@@ -44,4 +44,4 @@ app.*.map.json
 
 /.vscode
 
-lib/utils/api_keys.dart
+lib/config/api_keys.dart

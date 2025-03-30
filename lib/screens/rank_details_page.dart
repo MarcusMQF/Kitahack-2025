@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/loyalty_rank.dart';
 import '../services/rewards_service.dart';
+import '../services/theme_service.dart';
 
 class RankDetailsPage extends StatefulWidget {
   final LoyaltyRank initialRank;
@@ -37,14 +38,44 @@ class _RankDetailsPageState extends State<RankDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Get theme service to access theme colors
+    final themeService = Provider.of<ThemeService>(context);
+    final primaryColor = themeService.primaryColor;
+    
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Loyalty Ranks'),
+        title: const Text(
+          'Loyalty Ranks',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.blue,
+        backgroundColor: primaryColor,
         foregroundColor: Colors.white,
+        leading: Container(
+          margin: const EdgeInsets.only(left: 12),
+          child: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: primaryColor.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.all(0),
+              child: const Icon(
+                Icons.arrow_back,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+          ),
+        ),
       ),
       body: Consumer<RewardsService>(
         builder: (context, rewardsService, child) {
@@ -92,7 +123,7 @@ class _RankDetailsPageState extends State<RankDetailsPage> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: _currentPage == index
-                          ? Colors.blue
+                          ? primaryColor
                           : Colors.grey.shade300,
                     ),
                   );
@@ -267,6 +298,10 @@ class _RankDetailsPageState extends State<RankDetailsPage> {
   }
   
   Widget _buildRankDetails(LoyaltyRank rank) {
+    // Get theme service to access theme colors
+    final themeService = Provider.of<ThemeService>(context);
+    final primaryColor = themeService.primaryColor;
+    
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -357,7 +392,7 @@ class _RankDetailsPageState extends State<RankDetailsPage> {
                 icon: const Icon(Icons.compare_arrows),
                 label: const Text('Compare All Ranks'),
                 style: TextButton.styleFrom(
-                  foregroundColor: Colors.blue,
+                  foregroundColor: primaryColor,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
               ),
@@ -369,6 +404,10 @@ class _RankDetailsPageState extends State<RankDetailsPage> {
   }
   
   void _showRankComparisonSheet(BuildContext context) {
+    // Store the theme service reference before showing the modal
+    final themeService = Provider.of<ThemeService>(context, listen: false);
+    final primaryColor = themeService.primaryColor;
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -399,32 +438,27 @@ class _RankDetailsPageState extends State<RankDetailsPage> {
                             width: 40,
                             height: 5,
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade300,
+                              color: primaryColor.withOpacity(0.3),
                               borderRadius: BorderRadius.circular(2.5),
                             ),
                           ),
                         ),
                         const SizedBox(height: 16),
-                        const Text(
+                        Text(
                           'Rank Comparison',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
+                            color: primaryColor,
                           ),
                         ),
                       ],
                     ),
                   ),
                   
-                  // Ranks and benefits comparison
+                  // New redesigned comparison view
                   Expanded(
-                    child: ListView(
-                      controller: scrollController,
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                      children: [
-                        _buildComparisonTable(),
-                      ],
-                    ),
+                    child: _buildRedesignedComparisonView(scrollController),
                   ),
                 ],
               ),
@@ -435,129 +469,189 @@ class _RankDetailsPageState extends State<RankDetailsPage> {
     );
   }
   
-  Widget _buildComparisonTable() {
-    const TextStyle headerStyle = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 14,
-    );
-    
+  Widget _buildRedesignedComparisonView(ScrollController scrollController) {
     return Consumer<RewardsService>(
       builder: (context, rewardsService, child) {
         final currentRankId = rewardsService.currentRank.id;
+        final themeService = Provider.of<ThemeService>(context, listen: false);
+        // ignore: unused_local_variable
+        final primaryColor = themeService.primaryColor;
+
+        // Collect all unique benefits across all ranks
+        final Set<String> allBenefits = {};
+        for (var rank in LoyaltyRank.ranks) {
+          allBenefits.addAll(rank.benefits);
+        }
         
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            columnSpacing: 16,
-            headingRowHeight: 56,
-            dataRowMinHeight: 60,
-            dataRowMaxHeight: 100,
-            columns: [
-              const DataColumn(
-                label: Text(
-                  'Benefit',
-                  style: headerStyle,
-                ),
-              ),
-              ...LoyaltyRank.ranks.map((rank) {
-                final isCurrent = rank.id == currentRankId;
-                return DataColumn(
-                  label: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: isCurrent ? BoxDecoration(
-                      color: rank.color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: rank.color),
-                    ) : null,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          rank.name,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: rank.color,
-                            fontSize: 14,
-                          ),
-                        ),
-                        if (isCurrent) ...[
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: rank.color.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              'CURRENT',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
+        // Use a single horizontal scroll view for both headers and content
+        return Column(
+          children: [
+            // Main scrollable content with table-like layout
+            Expanded(
+              child: SingleChildScrollView(
+                controller: scrollController,
+                child: Column(
+                  children: [
+                    // Table-like layout with single horizontal scroll
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header row
+                          Row(
+                            children: [
+                              // Benefits header (fixed width)
+                              Container(
+                                width: 140,
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade50,
+                                  border: Border(
+                                    bottom: BorderSide(color: Colors.grey.shade300),
+                                    right: BorderSide(color: Colors.grey.shade300),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Benefit',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Colors.black87,
+                                  ),
+                                ),
                               ),
-                            ),
+                              
+                              // Rank headers
+                              ...LoyaltyRank.ranks.map((rank) {
+                                final isCurrent = rank.id == currentRankId;
+                                return Container(
+                                  width: 120,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: isCurrent ? Colors.blue.shade50 : Colors.white,
+                                    border: Border(
+                                      bottom: BorderSide(color: Colors.grey.shade300),
+                                      right: BorderSide(color: Colors.grey.shade300),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        rank.name,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: rank.color,
+                                          fontSize: 16,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      if (isCurrent) ...[
+                                        const SizedBox(height: 4),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.shade100,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            'CURRENT',
+                                            style: TextStyle(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black54,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ],
                           ),
+                          
+                          // Benefit rows
+                          ...allBenefits.map((benefit) {
+                            return Row(
+                              children: [
+                                // Benefit name (fixed width)
+                                Container(
+                                  width: 140,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border(
+                                      bottom: BorderSide(color: Colors.grey.shade300),
+                                      right: BorderSide(color: Colors.grey.shade300),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    benefit,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                                
+                                // Check marks for each rank
+                                ...LoyaltyRank.ranks.map((rank) {
+                                  final hasBenefit = rank.benefits.contains(benefit);
+                                  return Container(
+                                    width: 120,
+                                    height: 54,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border(
+                                        bottom: BorderSide(color: Colors.grey.shade300),
+                                        right: BorderSide(color: Colors.grey.shade300),
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: hasBenefit
+                                        ? Container(
+                                            width: 28,
+                                            height: 28,
+                                            decoration: BoxDecoration(
+                                              color: rank.color.withOpacity(0.1),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              Icons.check_rounded,
+                                              color: rank.color,
+                                              size: 18,
+                                            ),
+                                          )
+                                        : Container(
+                                            width: 28,
+                                            height: 28,
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.shade100,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              Icons.close,
+                                              color: Colors.grey.shade400,
+                                              size: 18,
+                                            ),
+                                          ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ],
+                            );
+                          }).toList(),
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                );
-              }).toList(),
-            ],
-            rows: _buildComparisonRows(),
-          ),
-        );
-      },
-    );
-  }
-  
-  List<DataRow> _buildComparisonRows() {
-    // Collect all unique benefits across all ranks
-    final Set<String> allBenefits = {};
-    for (var rank in LoyaltyRank.ranks) {
-      allBenefits.addAll(rank.benefits);
-    }
-    
-    // Create rows for each benefit
-    return allBenefits.map((benefit) {
-      return DataRow(
-        cells: [
-          DataCell(
-            SizedBox(
-              width: 150,
-              child: Text(
-                benefit,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
+                  ],
                 ),
               ),
             ),
-          ),
-          ...LoyaltyRank.ranks.map((rank) {
-            final hasBenefit = rank.benefits.contains(benefit);
-            return DataCell(
-              hasBenefit
-                ? Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: rank.color.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.check,
-                      color: rank.color,
-                      size: 16,
-                    ),
-                  )
-                : const Icon(
-                    Icons.close,
-                    color: Colors.grey,
-                    size: 16,
-                  ),
-            );
-          }).toList(),
-        ],
-      );
-    }).toList();
+          ],
+        );
+      },
+    );
   }
 }

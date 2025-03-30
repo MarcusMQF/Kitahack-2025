@@ -7,7 +7,9 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs photos access to get QR code from photo library</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to location when open.</string>
+	<string>This app needs access to location when open to find the best routes for you.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs access to location when in the background to provide you with real-time navigation updates.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -55,5 +57,7 @@
 	<string>This app requires access to the photo library to let you select a profile picture.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>This app requires access to the camera to take profile pictures.</string>
+	<key>io.flutter.embedded_views_preview</key>
+	<true/>
 </dict>
 </plist>

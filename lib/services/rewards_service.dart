@@ -25,7 +25,7 @@ class RewardsService extends ChangeNotifier {
 
   // Load saved data from storage
   Future<void> _loadData() async {
-    _points = _prefs.getInt('user_points') ?? 9999; // Default points from the example
+    _points = _prefs.getInt('user_points') ?? 16399; // Default points from the example
     _redeemedRewards = _prefs.getStringList('redeemed_rewards') ?? [];
     
     // Load points history
