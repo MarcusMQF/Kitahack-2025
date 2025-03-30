@@ -45,3 +45,10 @@ app.*.map.json
 /.vscode
 
 lib/config/api_keys.dart
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production

@@ -602,7 +602,7 @@ class _RouteDetailsPageState extends State<RouteDetailsPage> {
                     Expanded(
                       child: ListView.builder(
                         controller: scrollController,
-                        padding: const EdgeInsets.only(top: 12, bottom: 24),
+                        padding: const EdgeInsets.only(top: 24, bottom: 24),
                         itemCount: widget.route['segments'].length,
                         itemBuilder: (context, index) {
                           final segment = widget.route['segments'][index];
@@ -622,139 +622,230 @@ class _RouteDetailsPageState extends State<RouteDetailsPage> {
   
   Widget _buildSegmentItem(Map<String, dynamic> segment, int index) {
     final isWalking = segment['type'] == 'walk';
+    final isLastSegment = index == widget.route['segments'].length - 1;
     
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Left side - icon with vertical line
-          Column(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: segment['color'].withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  segment['icon'],
-                  color: segment['color'],
-                  size: 20,
+    return Container(
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 0, bottom: 0),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Left side - transit timeline with connected line
+            SizedBox(
+              width: 36,
+              child: Stack(
+                alignment: Alignment.topCenter,
+                children: [
+                  // Vertical connecting line that extends downward from the bottom of the icon
+                  if (!isLastSegment)
+                    Positioned(
+                      top: 18, // Half of icon height
+                      bottom: 0,
+                      width: 4,
+                      child: isWalking
+                          ? Container(
+                              alignment: Alignment.topCenter,
+                              child: _buildDottedLine(segment['color']),
+                            )
+                          : Container(
+                              width: 4,
+                              color: segment['color'],
+                            ),
+                    ),
+                  
+                  // Line from previous segment that connects to this icon from above
+                  if (index > 0) 
+                    Positioned(
+                      top: 0,
+                      height: 18, // Half of icon height
+                      width: 4,
+                      child: widget.route['segments'][index - 1]['type'] == 'walk'
+                          ? Container(
+                              alignment: Alignment.bottomCenter,
+                              child: _buildDottedLine(widget.route['segments'][index - 1]['color']),
+                            )
+                          : Container(
+                              width: 4,
+                              color: widget.route['segments'][index - 1]['color'],
+                            ),
+                    ),
+                  
+                  // Transit/walking icon centered over the connecting lines
+                  Positioned(
+                    top: 0,
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: Colors.white, // White background to create a clean break in line
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: segment['color'],
+                          width: 2, // Slightly thicker border to match Google Maps
+                        ),
+                      ),
+                      child: Icon(
+                        segment['icon'],
+                        color: segment['color'],
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(width: 16),
+            
+            // Right side - segment details
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(top: 8, bottom: isLastSegment ? 8 : 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Segment header
+                    if (isWalking)
+                      Text(
+                        'Walk for ${segment['duration'].inMinutes} min (${_formatDistance(segment['distance'])})',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      )
+                    else
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: segment['color'],
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              segment['line'],
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${segment['departure_time']} - ${segment['arrival_time']} (${segment['duration'].inMinutes} min)',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    
+                    const SizedBox(height: 4),
+                    
+                    // Additional information
+                    if (isWalking && segment.containsKey('instructions'))
+                      Text(
+                        segment['instructions'].toString().replaceAll(RegExp(r'<[^>]*>'), ''),
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontSize: 13,
+                        ),
+                      )
+                    else if (!isWalking)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'From: ${segment['departure_stop']}',
+                            style: TextStyle(
+                              color: Colors.grey.shade700,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'To: ${segment['arrival_stop']}',
+                            style: TextStyle(
+                              color: Colors.grey.shade700,
+                              fontSize: 13,
+                            ),
+                          ),
+                          if (segment.containsKey('headsign') && segment['headsign'] != null) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              'Direction: ${segment['headsign']}',
+                              style: TextStyle(
+                                color: Colors.grey.shade700,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                          if (segment.containsKey('num_stops')) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              segment['num_stops'] > 0 
+                                  ? '${segment['num_stops']} ${segment['num_stops'] == 1 ? 'stop' : 'stops'}'
+                                  : 'Direct',
+                              style: TextStyle(
+                                color: Colors.grey.shade700,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                  ],
                 ),
               ),
-              if (index < widget.route['segments'].length - 1)
-                Container(
-                  width: 2,
-                  height: isWalking ? 50 : 80,
-                  color: Colors.grey.shade300,
-                ),
-            ],
-          ),
-          
-          const SizedBox(width: 16),
-          
-          // Right side - segment details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Segment header
-                if (isWalking)
-                  Text(
-                    'Walk for ${segment['duration'].inMinutes} min (${_formatDistance(segment['distance'])})',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  )
-                else
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: segment['color'],
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          segment['line'],
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${segment['departure_time']} - ${segment['arrival_time']} (${segment['duration'].inMinutes} min)',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                
-                const SizedBox(height: 4),
-                
-                // Additional information
-                if (isWalking && segment.containsKey('instructions'))
-                  Text(
-                    segment['instructions'].toString().replaceAll(RegExp(r'<[^>]*>'), ''),
-                    style: TextStyle(
-                      color: Colors.grey.shade700,
-                      fontSize: 13,
-                    ),
-                  )
-                else if (!isWalking)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'From: ${segment['departure_stop']}',
-                        style: TextStyle(
-                          color: Colors.grey.shade700,
-                          fontSize: 13,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'To: ${segment['arrival_stop']}',
-                        style: TextStyle(
-                          color: Colors.grey.shade700,
-                          fontSize: 13,
-                        ),
-                      ),
-                      if (segment.containsKey('headsign') && segment['headsign'] != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          'Direction: ${segment['headsign']}',
-                          style: TextStyle(
-                            color: Colors.grey.shade700,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                      if (segment.containsKey('num_stops')) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          segment['num_stops'] > 0 
-                              ? '${segment['num_stops']} ${segment['num_stops'] == 1 ? 'stop' : 'stops'}'
-                              : 'Direct',
-                          style: TextStyle(
-                            color: Colors.grey.shade700,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-              ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+  
+  // Create dotted line for walking segments
+  Widget _buildDottedLine(Color color) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double availableHeight = constraints.maxHeight;
+        // If height is too small, just return an empty container
+        if (availableHeight <= 0) {
+          return Container(width: 4);
+        }
+        
+        final double dotSize = 4.0; // Slightly larger dots
+        final double gapSize = 4.0; // Slightly larger gaps
+        final int dotsCount = math.max(1, (availableHeight / (dotSize + gapSize)).floor());
+        
+        // Ensure we don't generate an invalid List.generate count
+        final int itemCount = math.max(1, dotsCount * 2 - 1);
+        
+        // Center the dots to make sure they extend fully
+        return Container(
+          width: 4,
+          height: availableHeight,
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(itemCount, (index) {
+              if (index.isEven) {
+                return Container(
+                  width: 4,
+                  height: dotSize,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                  ),
+                );
+              } else {
+                return SizedBox(height: gapSize);
+              }
+            }),
+          ),
+        );
+      },
     );
   }
   

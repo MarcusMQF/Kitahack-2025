@@ -2,12 +2,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import '../config/api_keys.dart';
 
 class RouteService {
   final String apiKey;
   final http.Client _client = http.Client();
 
-  RouteService({required this.apiKey});
+  RouteService({String? apiKey}) : this.apiKey = apiKey ?? ApiKeys.googleMapsApiKey;
 
   /// Fetches transit routes between two points using Google Directions API
   Future<List<Map<String, dynamic>>> getTransitRoutes({

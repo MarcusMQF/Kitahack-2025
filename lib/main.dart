@@ -11,8 +11,21 @@ import 'services/theme_service.dart';
 import 'services/location_service.dart';
 import 'services/place_service.dart';
 import 'services/favorites_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'config/api_keys.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Load environment variables from .env file
+  try {
+    await dotenv.load(fileName: ".env");
+    debugPrint("Environment variables loaded successfully");
+  } catch (e) {
+    debugPrint("Failed to load environment variables: $e");
+    // App can still run with the fallback API keys
+  }
+  
   runApp(
     MultiProvider(
       providers: [
@@ -21,7 +34,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => LocationService()),
         ChangeNotifierProvider(create: (_) => FavoritesService()),
         Provider<PlaceService>(
-          create: (_) => PlaceService(apiKey: 'AIzaSyB7CcobaXgTjKpctqRVlsS9RipWMMXl27g'),
+          create: (_) => PlaceService(apiKey: ApiKeys.googleMapsApiKey),
         ),
       ],
       child: const MyApp(),

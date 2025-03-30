@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/theme_service.dart';
 import '../../services/place_service.dart';
 import '../../services/favorites_service.dart';
+import '../../config/api_keys.dart';
 import 'route_planner_page.dart';
 
 class SearchDestinationPage extends StatefulWidget {
@@ -78,7 +79,7 @@ class _SearchDestinationPageState extends State<SearchDestinationPage> {
     _searchFocusNode.requestFocus();
     
     // Initialize place service
-    _placeService = PlaceService(apiKey: 'AIzaSyB7CcobaXgTjKpctqRVlsS9RipWMMXl27g');
+    _placeService = PlaceService(apiKey: ApiKeys.googleMapsApiKey);
     
     // Add listener for text changes
     _searchController.addListener(_onSearchTextChanged);
