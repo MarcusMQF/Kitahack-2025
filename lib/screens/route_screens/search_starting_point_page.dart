@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:lottie/lottie.dart';
 import '../../services/theme_service.dart';
 import '../../services/place_service.dart';
+import '../../services/address_service.dart';
 
 class SearchStartingPointPage extends StatefulWidget {
   const SearchStartingPointPage({super.key});
@@ -15,6 +17,12 @@ class _SearchStartingPointPageState extends State<SearchStartingPointPage> {
   final FocusNode _searchFocusNode = FocusNode();
   bool _isSearching = false;
   bool _isLoading = false;
+  
+  // Home and work addresses
+  Map<String, dynamic>? _homeAddress;
+  Map<String, dynamic>? _workAddress;
+  Map<String, dynamic>? _schoolAddress;
+  late AddressService _addressService;
   
   // Recent locations and search results
   final List<Map<String, dynamic>> _recentLocations = [
@@ -58,6 +66,12 @@ class _SearchStartingPointPageState extends State<SearchStartingPointPage> {
     
     // Get place service from provider
     _placeService = Provider.of<PlaceService>(context, listen: false);
+    
+    // Get address service from provider
+    _addressService = Provider.of<AddressService>(context, listen: false);
+    _homeAddress = _addressService.homeAddress;
+    _workAddress = _addressService.workAddress;
+    _schoolAddress = _addressService.schoolAddress;
     
     // Add listener for text changes
     _searchController.addListener(() {
@@ -124,7 +138,7 @@ class _SearchStartingPointPageState extends State<SearchStartingPointPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        titleSpacing: 0,
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -207,40 +221,75 @@ class _SearchStartingPointPageState extends State<SearchStartingPointPage> {
                   ),
                 ),
                 
+                // Home location option
                 _buildSearchOption(
                   icon: Icons.home,
-                  color: Colors.blue.shade600,
-                  title: 'Set home location',
+                  color: primaryColor,
+                  title: 'Home location',
+                  subtitle: _homeAddress != null ? _homeAddress!['address'] : 'Not set',
+                  isAvailable: _homeAddress != null,
                   onTap: () {
-                    // For demo, we'll use a hardcoded location
-                    // In a real app, you'd have user-saved locations
-                    _selectLocation({
-                      'id': 'home',
-                      'name': 'Home',
-                      'address': 'Your saved home address',
-                      'type': 'home',
-                      'icon': Icons.home,
-                      'latitude': 3.0738,
-                      'longitude': 101.5183,
-                    });
+                    if (_homeAddress != null) {
+                      // Use the actual saved home address
+                      _selectLocation(_homeAddress!);
+                    } else {
+                      // Show a snackbar indicating the home address is not set
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please set your home address first'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      Navigator.pop(context);
+                    }
                   },
                 ),
                 
+                // Work location option
                 _buildSearchOption(
                   icon: Icons.work,
                   color: primaryColor,
-                  title: 'Set work location',
+                  title: 'Work location',
+                  subtitle: _workAddress != null ? _workAddress!['address'] : 'Not set',
+                  isAvailable: _workAddress != null,
                   onTap: () {
-                    // For demo, we'll use a hardcoded location
-                    _selectLocation({
-                      'id': 'work',
-                      'name': 'Work',
-                      'address': 'Your saved work address',
-                      'type': 'work',
-                      'icon': Icons.work,
-                      'latitude': 3.1577,
-                      'longitude': 101.7117,
-                    });
+                    if (_workAddress != null) {
+                      // Use the actual saved work address
+                      _selectLocation(_workAddress!);
+                    } else {
+                      // Show a snackbar indicating the work address is not set
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please set your work address first'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      Navigator.pop(context);
+                    }
+                  },
+                ),
+                
+                // School location option
+                _buildSearchOption(
+                  icon: Icons.school,
+                  color: primaryColor,
+                  title: 'School location',
+                  subtitle: _schoolAddress != null ? _schoolAddress!['address'] : 'Not set',
+                  isAvailable: _schoolAddress != null,
+                  onTap: () {
+                    if (_schoolAddress != null) {
+                      // Use the actual saved school address
+                      _selectLocation(_schoolAddress!);
+                    } else {
+                      // Show a snackbar indicating the school address is not set
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please set your school address first'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      Navigator.pop(context);
+                    }
                   },
                 ),
               ],
@@ -248,11 +297,11 @@ class _SearchStartingPointPageState extends State<SearchStartingPointPage> {
           
           // Recent locations header
           if (!_isSearching && _recentLocations.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
               child: Row(
                 children: [
-                  const Text(
+                  Text(
                     'Recent',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
@@ -289,12 +338,15 @@ class _SearchStartingPointPageState extends State<SearchStartingPointPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.search_off,
-            size: 64,
-            color: Colors.grey.shade400,
+          SizedBox(
+            width: 200,
+            height: 200,
+            child: Lottie.network(
+              'https://lottie.host/4b2ea990-4d76-4439-824f-d0a7ad476586/ZZL3OHDool.json',
+              repeat: true,
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 0),
           const Text(
             'No results found',
             style: TextStyle(
@@ -316,40 +368,67 @@ class _SearchStartingPointPageState extends State<SearchStartingPointPage> {
     );
   }
   
+  // Updated search option widget with availability indicator
   Widget _buildSearchOption({
     required IconData icon,
     required Color color,
     required String title,
+    required String subtitle,
+    required bool isAvailable,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+    return Opacity(
+      opacity: isAvailable ? 1.0 : 0.6,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 22,
+                ),
               ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 22,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 16),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+              if (isAvailable)
+                const Icon(
+                  Icons.chevron_right,
+                  color: Colors.grey,
+                )
+            ],
+          ),
         ),
       ),
     );

@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 import '../services/rewards_service.dart';
 import '../services/theme_service.dart'; // Add theme service import
 import 'reward_page.dart';
+import 'package:url_launcher/url_launcher.dart'; // Add url_launcher import
+import 'webview_page.dart'; // Import WebViewPage
 
 // Class to store shared profile data
 class ProfileData {
@@ -92,7 +94,12 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text('My Profile'),
+        title: const Text(
+          'My Profile',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -437,7 +444,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                   _buildMenuOption(
                     icon: Icons.feedback,
                     title: 'Share Feedback',
-                    onTap: () {},
+                    onTap: () => _launchUrl(),
                     showArrow: true,
                   ),
                   _buildMenuOption(
@@ -1120,6 +1127,51 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), 
       (Match m) => '${m[1]},'
     );
+  }
+
+  // Function to launch a URL
+  Future<void> _launchUrl() async {
+    const String feedbackUrl = 'https://forms.fillout.com/t/3SeY34b1pNus';
+    
+    try {
+      // Try to open in WebView
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const WebViewPage(
+            url: feedbackUrl,
+            title: 'Share Feedback',
+          ),
+        ),
+      );
+    } catch (e) {
+      // If WebView fails, try to open in external browser
+      final Uri uri = Uri.parse(feedbackUrl);
+      try {
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(
+            uri,
+            mode: LaunchMode.externalApplication,
+          );
+        } else {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not open feedback form. Please try again later.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 }
 

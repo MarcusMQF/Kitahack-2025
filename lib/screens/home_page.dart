@@ -11,6 +11,8 @@ import 'package:provider/provider.dart';
 import '../services/rewards_service.dart';
 import '../services/theme_service.dart'; // Add theme service import
 import 'reward_page.dart';
+import 'route_page.dart';
+import 'ewallet_page.dart';
 
 class Particle {
   double x;
@@ -632,7 +634,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                                     color: Colors.transparent,
                                                     child: InkWell(
                                                       onTap: () {
-                                                        // Navigate to the rewards page with tab index 1 (Rewards)
+                                                        // Navigate to the rewards page with default tab (Overview)
                                                         Navigator.push(
                                                           context,
                                                           MaterialPageRoute(
@@ -684,7 +686,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                                   child: Material(
                                                     color: Colors.transparent,
                                                     child: InkWell(
-                                                      onTap: () {},
+                                                      onTap: () {
+                                                        // Navigate to the reward page with the History tab selected
+                                                        Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (context) => const RewardPage(initialTabIndex: 2),
+                                                          ),
+                                                        );
+                                                      },
                                                       borderRadius: BorderRadius.circular(16),
                                                       child: Padding(
                                                         padding: const EdgeInsets.symmetric(vertical: 14.0),
@@ -767,7 +777,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                 icon: Icons.map,
                                 label: 'Routes',
                                 color: Colors.green,
-                                onTap: () {},
+                                onTap: () {
+                                  // Navigate to the route page
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const RoutePage(),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -776,7 +794,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                 icon: Icons.credit_card,
                                 label: 'Top Up',
                                 color: Colors.orange,
-                                onTap: () {},
+                                onTap: () {
+                                  // Navigate to the e-wallet page
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const EWalletPage(),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                           ],
@@ -952,25 +978,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     required Color color,
     required VoidCallback onTap,
   }) {
-    // Use theme color for shadows to maintain consistency
-    final themeService = Provider.of<ThemeService>(context, listen: false);
-    // ignore: unused_local_variable
-    final primaryColor = themeService.primaryColor;
-    
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        height: 112,
         decoration: BoxDecoration(
           color: color.withAlpha((0.1 * 255).round()),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: color.withAlpha((0.15 * 255).round()),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-              spreadRadius: 0,
+              color: color.withAlpha((0.05 * 255).round()),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+              spreadRadius: -5,
             ),
           ],
         ),

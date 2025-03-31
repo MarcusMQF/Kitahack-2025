@@ -297,11 +297,11 @@ class _TransitMapState extends State<TransitMap> {
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12),
                       onTap: _focusOnDestination,
-                      child: SizedBox(
+                      child: const SizedBox(
                         width: 40,
                         height: 40,
                         child: Center(
-                          child: const Icon(
+                          child: Icon(
                             Icons.location_on,
                             color: Colors.red,
                             size: 20,

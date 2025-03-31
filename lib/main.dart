@@ -13,6 +13,7 @@ import 'services/place_service.dart';
 import 'services/favorites_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'config/api_keys.dart';
+import 'services/address_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +34,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ThemeService()),
         ChangeNotifierProvider(create: (_) => LocationService()),
         ChangeNotifierProvider(create: (_) => FavoritesService()),
+        ChangeNotifierProvider(create: (_) => AddressService()),
         Provider<PlaceService>(
           create: (_) => PlaceService(apiKey: ApiKeys.googleMapsApiKey),
         ),

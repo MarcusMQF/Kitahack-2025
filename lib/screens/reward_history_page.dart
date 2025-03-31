@@ -5,7 +5,12 @@ import '../services/rewards_service.dart';
 import '../services/theme_service.dart';
 
 class RewardHistoryPage extends StatefulWidget {
-  const RewardHistoryPage({super.key});
+  final bool isStandalone;
+
+  const RewardHistoryPage({
+    super.key,
+    this.isStandalone = true,
+  });
 
   @override
   State<RewardHistoryPage> createState() => _RewardHistoryPageState();
@@ -16,7 +21,11 @@ class _RewardHistoryPageState extends State<RewardHistoryPage> {
   
   @override
   Widget build(BuildContext context) {
-    return Consumer<RewardsService>(
+    final themeService = Provider.of<ThemeService>(context);
+    final primaryColor = themeService.primaryColor;
+    
+    // Build the main content
+    Widget content = Consumer<RewardsService>(
       builder: (context, rewardsService, child) {
         final history = rewardsService.pointsHistory;
         
@@ -62,6 +71,28 @@ class _RewardHistoryPageState extends State<RewardHistoryPage> {
         );
       },
     );
+    
+    // If this is a standalone page, wrap it in a Scaffold
+    if (widget.isStandalone) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Reward History',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          centerTitle: true,
+          backgroundColor: primaryColor,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: content,
+      );
+    }
+    
+    // Otherwise, just return the content for use in a TabBarView
+    return content;
   }
   
   Widget _buildFilterButton(HistoryItemType? type, String label) {

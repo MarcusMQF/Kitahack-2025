@@ -9,7 +9,12 @@ import 'reward_history_page.dart';
 import 'reward_catalog_page.dart';
 
 class RewardPage extends StatefulWidget {
-  const RewardPage({super.key});
+  final int initialTabIndex;
+
+  const RewardPage({
+    super.key,
+    this.initialTabIndex = 0,
+  });
 
   @override
   State<RewardPage> createState() => _RewardPageState();
@@ -21,7 +26,7 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 3, vsync: this, initialIndex: widget.initialTabIndex);
   }
 
   @override
@@ -142,7 +147,7 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
         children: [
           _buildOverviewTab(),
           const RewardCatalogPage(),
-          const RewardHistoryPage(),
+          const RewardHistoryPage(isStandalone: false),
         ],
       ),
     );

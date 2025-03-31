@@ -296,6 +296,7 @@ class _RouteDetailsPageState extends State<RouteDetailsPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -368,6 +369,7 @@ class _RouteDetailsPageState extends State<RouteDetailsPage> {
                 Card(
                   elevation: 4,
                   margin: EdgeInsets.zero,
+                  color: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -385,7 +387,12 @@ class _RouteDetailsPageState extends State<RouteDetailsPage> {
                           height: 40,
                           width: 40,
                           alignment: Alignment.center,
-                          child: const Icon(Icons.add, size: 24),
+                          color: Colors.transparent,
+                          child: Icon(
+                            Icons.add, 
+                            size: 24,
+                            color: themeService.primaryColor,
+                          ),
                         ),
                       ),
                       Divider(height: 1, thickness: 1, color: Colors.grey.shade300),
@@ -401,7 +408,12 @@ class _RouteDetailsPageState extends State<RouteDetailsPage> {
                           height: 40,
                           width: 40,
                           alignment: Alignment.center,
-                          child: const Icon(Icons.remove, size: 24),
+                          color: Colors.transparent,
+                          child: Icon(
+                            Icons.remove, 
+                            size: 24,
+                            color: themeService.primaryColor,
+                          ),
                         ),
                       ),
                     ],
@@ -713,7 +725,9 @@ class _RouteDetailsPageState extends State<RouteDetailsPage> {
                         ),
                       )
                     else
-                      Row(
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -730,7 +744,6 @@ class _RouteDetailsPageState extends State<RouteDetailsPage> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
                           Text(
                             '${segment['departure_time']} - ${segment['arrival_time']} (${segment['duration'].inMinutes} min)',
                             style: const TextStyle(
@@ -853,9 +866,13 @@ class _RouteDetailsPageState extends State<RouteDetailsPage> {
     required IconData icon,
     required VoidCallback onPressed,
   }) {
+    final themeService = Provider.of<ThemeService>(context);
+    final primaryColor = themeService.primaryColor;
+    
     return Card(
       elevation: 4,
       margin: EdgeInsets.zero,
+      color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
@@ -866,7 +883,11 @@ class _RouteDetailsPageState extends State<RouteDetailsPage> {
           height: 40,
           width: 40,
           alignment: Alignment.center,
-          child: Icon(icon, size: 22),
+          child: Icon(
+            icon, 
+            size: 22,
+            color: primaryColor,
+          ),
         ),
       ),
     );

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:lottie/lottie.dart';
 import '../../services/theme_service.dart';
 import '../../services/place_service.dart';
 import '../../services/favorites_service.dart';
 import '../../config/api_keys.dart';
-import 'route_planner_page.dart';
 
 class SearchDestinationPage extends StatefulWidget {
   const SearchDestinationPage({super.key});
@@ -141,15 +141,8 @@ class _SearchDestinationPageState extends State<SearchDestinationPage> {
   }
   
   void _selectLocation(Map<String, dynamic> location) {
-    // Add to recent locations (in real app, you'd save this to storage)
-    // For demo, we'll skip this step
-    
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => RoutePlannerPage(destination: location),
-      ),
-    );
+    // Just return the selected location to be handled by the calling screen
+    Navigator.pop(context, location);
   }
 
   @override
@@ -166,7 +159,7 @@ class _SearchDestinationPageState extends State<SearchDestinationPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        titleSpacing: 0,
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -273,7 +266,7 @@ class _SearchDestinationPageState extends State<SearchDestinationPage> {
                 
                 _buildSearchOption(
                   icon: Icons.map,
-                  color: Colors.blue.shade600,
+                  color: primaryColor,
                   title: 'Choose on map',
                   onTap: () {
                     // This would navigate to a map selection screen
@@ -381,12 +374,15 @@ class _SearchDestinationPageState extends State<SearchDestinationPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.search_off,
-            size: 64,
-            color: Colors.grey.shade400,
+          SizedBox(
+            width: 200,
+            height: 200,
+            child: Lottie.network(
+              'https://lottie.host/4b2ea990-4d76-4439-824f-d0a7ad476586/ZZL3OHDool.json',
+              repeat: true,
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 0),
           const Text(
             'No results found',
             style: TextStyle(
