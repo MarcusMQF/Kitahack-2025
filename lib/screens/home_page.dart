@@ -12,7 +12,7 @@ import '../services/rewards_service.dart';
 import '../services/theme_service.dart'; // Add theme service import
 import 'reward_page.dart';
 import 'route_page.dart';
-import 'ewallet_page.dart';
+import 'top_up_page.dart';
 
 class Particle {
   double x;
@@ -795,11 +795,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                 label: 'Top Up',
                                 color: Colors.orange,
                                 onTap: () {
-                                  // Navigate to the e-wallet page
+                                  // Navigate to the top up page
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const EWalletPage(),
+                                      builder: (context) => const TopUpPage(),
                                     ),
                                   );
                                 },

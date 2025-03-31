@@ -929,7 +929,7 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
                             ),
                           ),
                           if (reward.isLimited && reward.remainingQuantity != null)
-                            Container(
+            Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
                                 color: Colors.red.shade50,
@@ -965,9 +965,9 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
           padding: const EdgeInsets.only(bottom: 10.0),
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            decoration: BoxDecoration(
+              decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.grey.shade200),
               boxShadow: [
                 BoxShadow(
@@ -1194,14 +1194,14 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
                                   'Requires ${reward.requiredRank!.substring(0, 1).toUpperCase()}${reward.requiredRank!.substring(1)} rank or higher',
                                   style: TextStyle(
                                     color: Colors.amber.shade800,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
                     const SizedBox(height: 24),
                   ],
                   

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/theme_service.dart';
+import '../services/balance_service.dart';
 import 'dart:math' as math;
 import '../widgets/particle_background.dart';
+import 'top_up_page.dart';
+import 'transaction_history_page.dart';
 
 class EWalletPage extends StatefulWidget {
   const EWalletPage({super.key});
@@ -90,6 +93,16 @@ class _EWalletPageState extends State<EWalletPage> with SingleTickerProviderStat
               ),
             ),
           ),
+          // White background for rest of the content
+          Positioned(
+            top: 260,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              color: Colors.white,
+            ),
+          ),
           // Main content
           SafeArea(
             child: SingleChildScrollView(
@@ -139,13 +152,31 @@ class _EWalletPageState extends State<EWalletPage> with SingleTickerProviderStat
                                 ),
                               ],
                             ),
-                            TextButton(
-                              onPressed: () {},
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChangeNotifierProvider.value(
+                                      value: Provider.of<BalanceService>(context, listen: false),
+                                      child: const TransactionHistoryPage(),
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: primaryColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
                               child: Text(
                                 'See All',
                                 style: TextStyle(
                                   color: primaryColor,
-                                  fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                             ),
@@ -153,46 +184,179 @@ class _EWalletPageState extends State<EWalletPage> with SingleTickerProviderStat
                         ),
                         const SizedBox(height: 16),
                         
-                        // Transactions list with hero animation
-                        _buildTransactionItem(
-                          title: 'Bus Fare Payment',
-                          amount: '-RM 2.50',
-                          date: 'Today, 10:30 AM',
-                          icon: Icons.directions_bus,
-                          isDebit: true,
-                          color: primaryColor,
+                        // Transactions list with real data
+                        Consumer<BalanceService>(
+                          builder: (context, balanceService, child) {
+                            final transactions = balanceService.recentTransactions;
+                            
+                            if (transactions.isEmpty) {
+                              return Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.receipt_long,
+                                        size: 48,
+                                        color: Colors.grey.shade400,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'No transactions yet',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }
+                            
+                            return Column(
+                              children: [
+                                ...transactions.take(5).map((transaction) {
+                                  final amount = transaction.isDebit
+                                      ? '-RM ${transaction.amount.toStringAsFixed(2)}'
+                                      : '+RM ${transaction.amount.toStringAsFixed(2)}';
+                                  
+                                  // Format date
+                                  final now = DateTime.now();
+                                  final today = DateTime(now.year, now.month, now.day);
+                                  final yesterday = today.subtract(const Duration(days: 1));
+                                  final txDate = DateTime(
+                                    transaction.date.year,
+                                    transaction.date.month,
+                                    transaction.date.day,
+                                  );
+                                  
+                                  String formattedDate;
+                                  if (txDate == today) {
+                                    formattedDate = 'Today, ${_formatTime(transaction.date)}';
+                                  } else if (txDate == yesterday) {
+                                    formattedDate = 'Yesterday, ${_formatTime(transaction.date)}';
+                                  } else {
+                                    formattedDate = '${transaction.date.day} ${_getMonthName(transaction.date.month)}, ${_formatTime(transaction.date)}';
+                                  }
+                                  
+                                  // Get icon
+                                  IconData icon;
+                                  switch (transaction.iconType) {
+                                    case IconType.bus:
+                                      icon = Icons.directions_bus;
+                                      break;
+                                    case IconType.wallet:
+                                      icon = Icons.account_balance_wallet;
+                                      break;
+                                    case IconType.transfer:
+                                      icon = Icons.swap_horiz;
+                                      break;
+                                    case IconType.payment:
+                                      icon = Icons.payment;
+                                      break;
+                                  }
+                                  
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+                                          color: Colors.grey.withOpacity(0.05),
+                                          blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _showTransactionDetails(
+            context, 
+                                          transaction.title, 
+            amount, 
+                                          formattedDate, 
+            icon, 
+                                          transaction.isDebit, 
+                                          primaryColor
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Transaction icon
+                Container(
+                                                width: 45,
+                                                height: 45,
+                  decoration: BoxDecoration(
+                                                  color: transaction.isDebit ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: (transaction.isDebit ? Colors.red : Colors.green).withOpacity(0.1),
+                                                      blurRadius: 4,
+                                                      offset: const Offset(0, 2),
+                                                      spreadRadius: -2,
+                                                    ),
+                                                  ],
+                  ),
+                  child: Icon(
+                    icon,
+                                                  color: transaction.isDebit ? Colors.red : Colors.green,
+                                                  size: 22,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                
+                // Transaction details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                                                      transaction.title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
                         ),
-                        _buildTransactionItem(
-                          title: 'Top Up',
-                          amount: '+RM 30.00',
-                          date: 'Yesterday, 2:15 PM',
-                          icon: Icons.account_balance_wallet,
-                          isDebit: false,
-                          color: primaryColor,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                                                      formattedDate,
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 13,
                         ),
-                        _buildTransactionItem(
-                          title: 'Bus Fare Payment',
-                          amount: '-RM 2.50',
-                          date: '15 Aug, 8:45 AM',
-                          icon: Icons.directions_bus,
-                          isDebit: true,
-                          color: primaryColor,
-                        ),
-                        _buildTransactionItem(
-                          title: 'Top Up',
-                          amount: '+RM 50.00',
-                          date: '12 Aug, 5:30 PM',
-                          icon: Icons.account_balance_wallet,
-                          isDebit: false,
-                          color: primaryColor,
-                        ),
-                        _buildTransactionItem(
-                          title: 'Bus Fare Payment',
-                          amount: '-RM 5.00',
-                          date: '10 Aug, 9:15 AM',
-                          icon: Icons.directions_bus,
-                          isDebit: true,
-                          color: primaryColor,
+                      ),
+                    ],
+                  ),
+                ),
+                
+                                              // Amount
+                                              Text(
+                                                amount,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                                                  color: transaction.isDebit ? Colors.red : Colors.green,
+                                                ),
+                ),
+              ],
+            ),
+          ),
+        ),
+                                    ),
+                                  );
+                                }).toList(),
+                                // Add gap at the bottom
+                                const SizedBox(height: 24),
+                              ],
+                            );
+                          },
                         ),
                         
                         // Remove the special offers section
@@ -207,110 +371,6 @@ class _EWalletPageState extends State<EWalletPage> with SingleTickerProviderStat
             ),
           ),
         ],
-      ),
-    );
-  }
-  
-  Widget _buildTransactionItem({
-    required String title,
-    required String amount,
-    required String date,
-    required IconData icon,
-    required bool isDebit,
-    required Color color,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => _showTransactionDetails(
-            context, 
-            title, 
-            amount, 
-            date, 
-            icon, 
-            isDebit, 
-            color
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                // Transaction icon
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: isDebit ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: isDebit ? Colors.red : Colors.green,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                
-                // Transaction details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        date,
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                // Amount with animated shimmer effect
-                ShimmerText(
-                  text: amount,
-                  style: TextStyle(
-                    color: isDebit ? Colors.red : Colors.green,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                  baseColor: isDebit ? Colors.red : Colors.green,
-                  highlightColor: isDebit 
-                      ? Colors.red.shade300 
-                      : Colors.green.shade300,
-                  isEnabled: isDebit 
-                      ? amount.contains('5.00') 
-                      : amount.contains('50.00'),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -391,9 +451,11 @@ class _EWalletPageState extends State<EWalletPage> with SingleTickerProviderStat
                         ),
                       ),
                       const SizedBox(width: 10),
-                      const ShimmerText(
-                        text: '30.00',
-                        style: TextStyle(
+                      Consumer<BalanceService>(
+                        builder: (context, balanceService, child) {
+                          return ShimmerText(
+                            text: balanceService.balance.toStringAsFixed(2),
+                            style: const TextStyle(
                           color: Colors.white,
                           fontSize: 48,
                           fontWeight: FontWeight.bold,
@@ -410,6 +472,8 @@ class _EWalletPageState extends State<EWalletPage> with SingleTickerProviderStat
                         baseColor: Colors.white,
                         highlightColor: Colors.white,
                         isEnabled: true,
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -496,9 +560,10 @@ class _EWalletPageState extends State<EWalletPage> with SingleTickerProviderStat
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -540,7 +605,17 @@ class _EWalletPageState extends State<EWalletPage> with SingleTickerProviderStat
               _buildQuickActionItem(
                 icon: Icons.history_outlined,
                 label: 'History',
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChangeNotifierProvider.value(
+                        value: Provider.of<BalanceService>(context, listen: false),
+                        child: const TransactionHistoryPage(),
+                      ),
+                    ),
+                  );
+                },
                 color: Colors.orange,
               ),
             ],
@@ -595,264 +670,10 @@ class _EWalletPageState extends State<EWalletPage> with SingleTickerProviderStat
   }
 
   void _showTopUpDialog(BuildContext context, Color primaryColor) {
-    final TextEditingController amountController = TextEditingController();
-    final FocusNode focusNode = FocusNode();
-    
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Container(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  topRight: Radius.circular(24),
-                ),
-              ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Top Up Balance',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: primaryColor,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    
-                    // Amount input
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: TextField(
-                        controller: amountController,
-                        focusNode: focusNode,
-                        keyboardType: TextInputType.number,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Enter amount',
-                          prefixIcon: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            margin: const EdgeInsets.only(right: 8),
-                            child: const Text(
-                              'RM',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-                        ),
-                        onTap: () {
-                          focusNode.requestFocus();
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    
-                    // Quick amount buttons
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildAmountButton('RM 10', amountController),
-                        _buildAmountButton('RM 20', amountController),
-                        _buildAmountButton('RM 50', amountController),
-                        _buildAmountButton('RM 100', amountController),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    
-                    // Payment method
-                    const Text(
-                      'Payment Method',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // Payment options
-                    _buildPaymentOption(
-                      title: 'Credit/Debit Card',
-                      subtitle: '**** 4582',
-                      icon: Icons.credit_card,
-                      isSelected: true,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildPaymentOption(
-                      title: 'Online Banking',
-                      subtitle: 'Direct bank transfer',
-                      icon: Icons.account_balance,
-                      isSelected: false,
-                    ),
-                    const SizedBox(height: 24),
-                    
-                    // Top up button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: const Text('Top up successful!'),
-                              behavior: SnackBarBehavior.floating,
-                              backgroundColor: Colors.green,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Top Up Now',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildAmountButton(String amount, TextEditingController controller) {
-    return InkWell(
-      onTap: () {
-        controller.text = amount.replaceAll('RM ', '');
-      },
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Text(
-          amount,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPaymentOption({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required bool isSelected,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isSelected ? Colors.blue : Colors.grey.shade200,
-          width: isSelected ? 2 : 1,
-        ),
-        boxShadow: isSelected
-            ? [
-                BoxShadow(
-                  color: Colors.blue.withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : null,
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon,
-              color: Colors.blue,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Radio(
-            value: true,
-            groupValue: isSelected,
-            onChanged: (_) {},
-            activeColor: Colors.blue,
-          ),
-        ],
-      ),
+    // Navigate to the dedicated TopUpPage instead of showing a bottom sheet
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const TopUpPage()),
     );
   }
   
@@ -1002,6 +823,22 @@ class _EWalletPageState extends State<EWalletPage> with SingleTickerProviderStat
         ),
       ],
     );
+  }
+
+  // Helper methods for formatting dates
+  String _formatTime(DateTime date) {
+    final hour = date.hour > 12 ? date.hour - 12 : date.hour;
+    final period = date.hour >= 12 ? 'PM' : 'AM';
+    final minute = date.minute.toString().padLeft(2, '0');
+    return '$hour:$minute $period';
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return months[month - 1];
   }
 }
 

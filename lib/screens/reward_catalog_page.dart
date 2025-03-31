@@ -314,7 +314,7 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
   }
 
   Widget _buildEmptyState() {
-    final themeService = Provider.of<ThemeService>(context);
+    final themeService = Provider.of<ThemeService>(context, listen: false);
     final primaryColor = themeService.primaryColor;
 
     return Center(
@@ -381,7 +381,7 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
     final isExclusive = reward.isExclusive;
     final isAffordable = rewardsService.canAfford(reward);
     final Color cardColor = isExclusive ? Colors.amber : Colors.blue;
-    final themeService = Provider.of<ThemeService>(context);
+    final themeService = Provider.of<ThemeService>(context, listen: false);
     final primaryColor = themeService.primaryColor;
     
     return Padding(
@@ -592,7 +592,7 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        final themeService = Provider.of<ThemeService>(context);
+        final themeService = Provider.of<ThemeService>(context, listen: false);
         // ignore: unused_local_variable
         final primaryColor = themeService.primaryColor;
         
@@ -751,7 +751,7 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
 
   void _showRewardDetails(RewardItem reward, RewardsService rewardsService) {
     final Color cardColor = reward.isExclusive ? Colors.amber : Colors.blue;
-    final themeService = Provider.of<ThemeService>(context);
+    final themeService = Provider.of<ThemeService>(context, listen: false);
     final primaryColor = themeService.primaryColor;
     
     showModalBottomSheet(

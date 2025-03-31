@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'screens/home_page.dart';
 import 'screens/route_page.dart';
 import 'screens/reward_page.dart';
-import 'screens/my_trip_page.dart';
 import 'screens/qr_scanner_page.dart';
 import 'utils/app_theme.dart';
 import 'services/rewards_service.dart';
@@ -14,6 +13,8 @@ import 'services/favorites_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'config/api_keys.dart';
 import 'services/address_service.dart';
+import 'screens/ewallet_page.dart';
+import 'services/balance_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +36,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => LocationService()),
         ChangeNotifierProvider(create: (_) => FavoritesService()),
         ChangeNotifierProvider(create: (_) => AddressService()),
+        ChangeNotifierProvider(create: (_) => BalanceService()),
         Provider<PlaceService>(
           create: (_) => PlaceService(apiKey: ApiKeys.googleMapsApiKey),
         ),
@@ -75,7 +77,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   
   final List<Widget> _pages = [
     const HomePage(),
-    const MyTripPage(),
+    const EWalletPage(),
     const RoutePage(),
     const RewardPage(),
   ];
@@ -276,7 +278,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           overlayColor: WidgetStateProperty.all(Colors.transparent),
           destinations: [
             _buildNavItem(Icons.home, 'Home', 0),
-            _buildNavItem(Icons.directions_bus, 'My Trip', 1),
+            _buildNavItem(Icons.wallet_giftcard_rounded, 'Wallet', 1),
             _buildScanButton(2),
             _buildNavItem(Icons.map, 'Route', 3),
             _buildNavItem(Icons.card_giftcard, 'Reward', 4),

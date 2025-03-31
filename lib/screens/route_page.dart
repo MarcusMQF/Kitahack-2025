@@ -2460,28 +2460,19 @@ class _RoutePageState extends State<RoutePage> {
           Row(
             children: [
               Container(
-                width: 6,
-                height: 26,
+                width: 5,
+                height: 24,
                 decoration: BoxDecoration(
                   color: primaryColor,
                   borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: primaryColor.withOpacity(0.2),
-                      spreadRadius: 1,
-                      blurRadius: 3,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               const Text(
                 'Quick Access',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 0.2,
                 ),
               ),
             ],
