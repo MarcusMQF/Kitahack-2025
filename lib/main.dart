@@ -278,7 +278,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           overlayColor: WidgetStateProperty.all(Colors.transparent),
           destinations: [
             _buildNavItem(Icons.home, 'Home', 0),
-            _buildNavItem(Icons.wallet_giftcard_rounded, 'Wallet', 1),
+            _buildNavItem(Icons.account_balance_wallet_outlined, 'Wallet', 1),
             _buildScanButton(2),
             _buildNavItem(Icons.map, 'Route', 3),
             _buildNavItem(Icons.card_giftcard, 'Reward', 4),

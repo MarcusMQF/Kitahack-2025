@@ -591,8 +591,8 @@ class _EWalletPageState extends State<EWalletPage> with SingleTickerProviderStat
                 color: Colors.blue,
               ),
               _buildQuickActionItem(
-                icon: Icons.swap_horiz_outlined,
-                label: 'Transfer',
+                icon: Icons.bus_alert_rounded,
+                label: 'Transit',
                 onTap: () {},
                 color: Colors.purple,
               ),
