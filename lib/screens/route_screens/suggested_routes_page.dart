@@ -462,7 +462,7 @@ class _SuggestedRoutesPageState extends State<SuggestedRoutesPage> {
             Positioned(
               top: 4,
               right: 4,
-              child: InkWell(
+              child: GestureDetector(
                 onTap: () {
                   // Navigate to route details
                   Navigator.push(
@@ -476,9 +476,11 @@ class _SuggestedRoutesPageState extends State<SuggestedRoutesPage> {
                     ),
                   );
                 },
-                borderRadius: BorderRadius.circular(20),
-                child: Padding(
+                child: Container(
                   padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

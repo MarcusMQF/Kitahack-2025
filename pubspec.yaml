@@ -29,6 +29,7 @@ dependencies:
   flutter_dotenv: ^5.2.1
   webview_flutter: ^4.10.0
   qr_flutter: ^4.1.0
+  slide_to_act: ^2.0.2
 
 dev_dependencies:
   flutter_test:

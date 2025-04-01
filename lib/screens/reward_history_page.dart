@@ -58,7 +58,7 @@ class _RewardHistoryPageState extends State<RewardHistoryPage> {
               child: filteredHistory.isEmpty
                   ? _buildEmptyState() 
                   : ListView.separated(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
                       itemCount: filteredHistory.length,
                       separatorBuilder: (context, index) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {

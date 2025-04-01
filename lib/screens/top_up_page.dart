@@ -503,7 +503,12 @@ class _TopUpPageState extends State<TopUpPage> {
                     Text('Processing...'),
                   ],
                 )
-              : const Text('Top Up Now'),
+              : const Text(
+                'Top Up Now',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
         ),
       ),
     );

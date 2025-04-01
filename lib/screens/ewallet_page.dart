@@ -6,6 +6,9 @@ import 'dart:math' as math;
 import '../widgets/particle_background.dart';
 import 'top_up_page.dart';
 import 'transaction_history_page.dart';
+import 'pay_for_transit_page.dart';
+import '../services/wallet_service.dart';
+import 'transit_history_page.dart';
 
 class EWalletPage extends StatefulWidget {
   const EWalletPage({super.key});
@@ -593,13 +596,28 @@ class _EWalletPageState extends State<EWalletPage> with SingleTickerProviderStat
               _buildQuickActionItem(
                 icon: Icons.train_rounded,
                 label: 'Transit',
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChangeNotifierProvider.value(
+                        value: Provider.of<WalletService>(context, listen: false),
+                        child: const TransitHistoryPage(),
+                      ),
+                    ),
+                  );
+                },
                 color: Colors.purple,
               ),
               _buildQuickActionItem(
                 icon: Icons.qr_code_scanner_outlined,
                 label: 'Scan & Pay',
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const PayForTransitPage()),
+                  );
+                },
                 color: Colors.teal,
               ),
               _buildQuickActionItem(

@@ -15,6 +15,7 @@ import 'config/api_keys.dart';
 import 'services/address_service.dart';
 import 'screens/ewallet_page.dart';
 import 'services/balance_service.dart';
+import 'services/wallet_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +38,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => FavoritesService()),
         ChangeNotifierProvider(create: (_) => AddressService()),
         ChangeNotifierProvider(create: (_) => BalanceService()),
+        ChangeNotifierProvider(create: (_) => WalletService()),
         Provider<PlaceService>(
           create: (_) => PlaceService(apiKey: ApiKeys.googleMapsApiKey),
         ),
