@@ -57,6 +57,33 @@ class _EWalletPageState extends State<EWalletPage> with SingleTickerProviderStat
     final themeService = Provider.of<ThemeService>(context);
     final primaryColor = themeService.primaryColor;
     final secondaryColor = themeService.secondaryColor;
+    final balanceService = Provider.of<BalanceService>(context);
+    final walletService = Provider.of<WalletService>(context);
+    
+    // Show loading indicator while services initialize
+    if (!balanceService.isInitialized || !walletService.isInitialized) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Loading your wallet data...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade700,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     
     return Scaffold(
       extendBodyBehindAppBar: true,

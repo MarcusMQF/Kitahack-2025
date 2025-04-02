@@ -10,8 +10,43 @@ class TransitHistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeService = Provider.of<ThemeService>(context);
+    final walletService = Provider.of<WalletService>(context);
     final primaryColor = themeService.primaryColor;
     final secondaryColor = themeService.secondaryColor;
+    
+    // Show loading indicator while wallet service initializes
+    if (!walletService.isInitialized) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Transit History',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          centerTitle: true,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Loading transit history...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade700,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     
     return Scaffold(
       backgroundColor: primaryColor,
@@ -117,7 +152,9 @@ class TransitHistoryPage extends StatelessWidget {
                       // Add padding at the bottom to ensure content doesn't get cut off
                       child: Consumer<WalletService>(
                         builder: (context, walletService, child) {
-                          final tripHistory = walletService.tripHistory;
+                          // Get trip history and sort by exit time (descending)
+                          final tripHistory = List<TransitRecord>.from(walletService.tripHistory)
+                            ..sort((a, b) => b.exitTime!.compareTo(a.exitTime!));
                           
                           if (tripHistory.isEmpty) {
                             return _buildEmptyState(primaryColor);

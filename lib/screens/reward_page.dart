@@ -506,13 +506,25 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Progress to ${nextRank.name}',
-                            style: TextStyle(
-                              color: Colors.grey.shade700,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Progress to ${nextRank.name}',
+                                style: TextStyle(
+                                  color: Colors.grey.shade700,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                '${totalPoints - currentRank.pointsRequired} of ${nextRank.pointsRequired - currentRank.pointsRequired} pts',
+                                style: TextStyle(
+                                  color: Colors.grey.shade500,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -612,13 +624,25 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
                                 ),
                               ),
                               const SizedBox(width: 6),
-                              Text(
-                                currentRank.name,
-                                style: TextStyle(
-                                  color: currentRank.color,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    currentRank.name,
+                                    style: TextStyle(
+                                      color: currentRank.color,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${currentRank.pointsRequired} pts',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -626,13 +650,25 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
                           // Next rank
                           Row(
                             children: [
-                              Text(
-                                nextRank.name,
-                                style: TextStyle(
-                                  color: nextRank.color,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    nextRank.name,
+                                    style: TextStyle(
+                                      color: nextRank.color,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${nextRank.pointsRequired} pts',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
                               ),
                               const SizedBox(width: 6),
                               CircleAvatar(
@@ -724,16 +760,27 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              width: 44,
+              height: 44,
+              padding: const EdgeInsets.all(0),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: color.withOpacity(0.3)),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                    spreadRadius: -2,
+                  ),
+                ],
               ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 20,
+              child: Center(
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 20,
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -846,13 +893,18 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
                 Container(
                   width: 56,
                   height: 56,
+                  padding: const EdgeInsets.all(0),
                   decoration: BoxDecoration(
                     color: cardColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isExclusive ? Colors.amber : Colors.blue.shade200,
-                      width: 1,
-                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: cardColor.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                        spreadRadius: -2,
+                      ),
+                    ],
                   ),
                   child: Center(
                     child: Icon(
@@ -913,36 +965,58 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                             decoration: BoxDecoration(
                               color: primaryColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(20),
                               border: Border.all(color: primaryColor.withOpacity(0.3)),
                             ),
-                            child: Text(
-                              '${reward.pointsCost} Points',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: primaryColor,
-                                fontSize: 12,
-                              ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.star,
+                                  color: primaryColor,
+                                  size: 14,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${reward.pointsCost}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: primaryColor,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           if (reward.isLimited && reward.remainingQuantity != null)
-            Container(
+                            Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
                                 color: Colors.red.shade50,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(color: Colors.red.shade200),
                               ),
-                              child: Text(
-                                '${reward.remainingQuantity} left',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.red.shade700,
-                                ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.access_time_filled,
+                                    size: 12,
+                                    color: Colors.red.shade700,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${reward.remainingQuantity} left',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red.shade700,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                         ],
@@ -985,13 +1059,20 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
                   decoration: BoxDecoration(
                     color: rank.color.withOpacity(0.1),
                     shape: BoxShape.circle,
-                    border: Border.all(color: rank.color.withOpacity(0.3)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: rank.color.withOpacity(0.2),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                        spreadRadius: -1,
+                      ),
+                    ],
                   ),
                   child: Center(
                     child: Icon(
                       Icons.check,
                       color: rank.color,
-                      size: 18,
+                      size: 16,
                     ),
                   ),
                 ),
@@ -1058,6 +1139,14 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
                     decoration: BoxDecoration(
                       color: cardColor.withOpacity(0.1),
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: cardColor.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                          spreadRadius: -2,
+                        ),
+                      ],
                     ),
                     child: Center(
                       child: Icon(
@@ -1092,12 +1181,23 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
                         color: primaryColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Text(
-                        '${reward.pointsCost} Points',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: primaryColor,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.star,
+                            color: primaryColor,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${reward.pointsCost} Points',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: primaryColor,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -1194,14 +1294,14 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
                                   'Requires ${reward.requiredRank!.substring(0, 1).toUpperCase()}${reward.requiredRank!.substring(1)} rank or higher',
                                   style: TextStyle(
                                     color: Colors.amber.shade800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
                     const SizedBox(height: 24),
                   ],
                   

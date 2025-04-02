@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:lottie/lottie.dart';
 import '../../services/theme_service.dart';
 import '../../services/place_service.dart';
 import '../../services/favorites_service.dart';
 import '../../config/api_keys.dart';
+import '../../utils/lottie_cache.dart' as cache;
 
 class SearchDestinationPage extends StatefulWidget {
   const SearchDestinationPage({super.key});
@@ -377,8 +377,8 @@ class _SearchDestinationPageState extends State<SearchDestinationPage> {
           SizedBox(
             width: 200,
             height: 200,
-            child: Lottie.network(
-              'https://lottie.host/4b2ea990-4d76-4439-824f-d0a7ad476586/ZZL3OHDool.json',
+            child: cache.LottieCache().getLottieWidget(
+              url: cache.LottieCache.noSearchResultsUrl,
               repeat: true,
             ),
           ),

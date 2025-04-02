@@ -29,6 +29,42 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
     final primaryColor = themeService.primaryColor;
     final secondaryColor = themeService.secondaryColor;
     
+    // Show loading indicator while the balance service is initializing
+    if (!balanceService.isInitialized) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Transaction History',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          centerTitle: true,
+          backgroundColor: primaryColor,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Loading transaction history...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade700,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
     // Get all transactions
     final transactions = balanceService.transactions;
     
@@ -321,7 +357,22 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
       result[month]!.add(tx);
     }
     
-    return result;
+    // Sort each month's transactions by date in descending order (newest first)
+    result.forEach((month, txList) {
+      txList.sort((a, b) => b.date.compareTo(a.date));
+    });
+    
+    // Sort the months in descending order (newest first)
+    final sortedResult = Map.fromEntries(
+      result.entries.toList()
+        ..sort((a, b) {
+          final dateA = DateFormat('MMMM yyyy').parse(a.key);
+          final dateB = DateFormat('MMMM yyyy').parse(b.key);
+          return dateB.compareTo(dateA);
+        })
+    );
+    
+    return sortedResult;
   }
   
   void _showTransactionDetails(Transaction transaction) {

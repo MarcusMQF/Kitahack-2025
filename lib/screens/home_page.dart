@@ -556,12 +556,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                         // Progress indicator (shown only when expanded)
                                         if (nextRank != null) 
                                           AnimatedProgressBar(
-                                            progress: progressToNext, // Dynamic progress
-                                            maxValue: nextRank.pointsRequired.toDouble(),
-                                            currentValue: points.toDouble(),
+                                            progress: progressToNext, // This is already correct (0.0 to 1.0)
+                                            maxValue: (nextRank.pointsRequired - currentRank.pointsRequired).toDouble(), // Difference between ranks
+                                            currentValue: (points - currentRank.pointsRequired).toDouble(), // Points accumulated in current rank
                                             isExpanded: isExpanded,
                                             leftLabel: 'Need $pointsToNext more pts to ${nextRank.name}',
-                                            rightLabel: '${nextRank.name}: ${nextRank.pointsRequired}',
+                                            rightLabel: '${nextRank.pointsRequired - currentRank.pointsRequired} pts',
                                           )
                                         else 
                                           // Custom display for highest rank achieved

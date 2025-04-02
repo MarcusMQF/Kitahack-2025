@@ -104,29 +104,34 @@ class _AnimatedProgressBarState extends State<AnimatedProgressBar> with SingleTi
         children: [
           const SizedBox(height: 6),
           // Progress bar
-          Container(
-            width: double.infinity,
-            height: 5,
-            decoration: BoxDecoration(
-              color: widget.backgroundColor,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: AnimatedBuilder(
-              animation: _progressAnimation,
-              builder: (context, child) {
-                return Row(
-                  children: [
-                    Container(
-                      width: MediaQuery.of(context).size.width * _progressAnimation.value * 0.7, // Adjust width factor as needed
-                      decoration: BoxDecoration(
-                        color: widget.progressColor,
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final barWidth = constraints.maxWidth;
+              return Container(
+                width: double.infinity,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: widget.backgroundColor,
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: AnimatedBuilder(
+                  animation: _progressAnimation,
+                  builder: (context, child) {
+                    return Row(
+                      children: [
+                        Container(
+                          width: barWidth * _progressAnimation.value, // Use the actual container width
+                          decoration: BoxDecoration(
+                            color: widget.progressColor,
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              );
+            }
           ),
           const SizedBox(height: 8),
           // Labels

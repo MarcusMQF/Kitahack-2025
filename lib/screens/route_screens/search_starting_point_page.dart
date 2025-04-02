@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:lottie/lottie.dart';
 import '../../services/theme_service.dart';
 import '../../services/place_service.dart';
 import '../../services/address_service.dart';
+import '../../utils/lottie_cache.dart' as cache;
 
 class SearchStartingPointPage extends StatefulWidget {
   const SearchStartingPointPage({super.key});
@@ -341,8 +341,8 @@ class _SearchStartingPointPageState extends State<SearchStartingPointPage> {
           SizedBox(
             width: 200,
             height: 200,
-            child: Lottie.network(
-              'https://lottie.host/4b2ea990-4d76-4439-824f-d0a7ad476586/ZZL3OHDool.json',
+            child: cache.LottieCache().getLottieWidget(
+              url: cache.LottieCache.noSearchResultsUrl,
               repeat: true,
             ),
           ),

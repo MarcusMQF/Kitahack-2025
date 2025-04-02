@@ -352,6 +352,14 @@ class _RankDetailsPageState extends State<RankDetailsPage> {
                         decoration: BoxDecoration(
                           color: rank.color.withOpacity(0.1),
                           shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: rank.color.withOpacity(0.2),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                              spreadRadius: -2,
+                            ),
+                          ],
                         ),
                         child: Center(
                           child: Icon(

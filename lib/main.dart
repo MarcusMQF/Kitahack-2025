@@ -16,6 +16,11 @@ import 'services/address_service.dart';
 import 'screens/ewallet_page.dart';
 import 'services/balance_service.dart';
 import 'services/wallet_service.dart';
+import 'screens/welcome_page.dart';
+import 'widgets/splash_screen.dart';
+import 'screens/login_page.dart';
+import 'screens/signup_page.dart';
+import 'utils/lottie_cache.dart' as cache;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +33,9 @@ void main() async {
     debugPrint("Failed to load environment variables: $e");
     // App can still run with the fallback API keys
   }
+  
+  // Preload Lottie animations in the background
+  cache.LottieCache().preloadAll();
   
   runApp(
     MultiProvider(
@@ -59,7 +67,14 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           title: 'Transit Go',
           theme: AppTheme.currentTheme,
-          home: const MainNavigationScreen(),
+          // Start with the splash screen
+          home: const SplashScreen(),
+          routes: {
+            '/welcome': (context) => const WelcomePage(),
+            '/login': (context) => const LoginPage(),
+            '/signup': (context) => const SignupPage(),
+            '/main': (context) => const MainNavigationScreen(),
+          },
         );
       },
     );

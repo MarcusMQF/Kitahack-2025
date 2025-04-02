@@ -327,12 +327,21 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
             decoration: BoxDecoration(
               color: Colors.grey.shade100,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.grey.shade300),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                  spreadRadius: -2,
+                ),
+              ],
             ),
-            child: Icon(
-              Icons.search_off,
-              size: 40,
-              color: Colors.grey.shade400,
+            child: Center(
+              child: Icon(
+                Icons.search_off,
+                size: 40,
+                color: Colors.grey.shade400,
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -417,10 +426,14 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
                       decoration: BoxDecoration(
                         color: cardColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isExclusive ? Colors.amber : Colors.blue.shade200,
-                          width: 1,
-                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: cardColor.withOpacity(0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                            spreadRadius: -2,
+                          ),
+                        ],
                       ),
                       child: Center(
                         child: Icon(
@@ -494,25 +507,26 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: isAffordable ? primaryColor.withOpacity(0.1) : Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: isAffordable ? primaryColor.withOpacity(0.3) : Colors.grey.shade300,
                         ),
                       ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
                             Icons.star,
-                            size: 18,
+                            size: 14,
                             color: isAffordable ? primaryColor : Colors.grey,
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 4),
                           Text(
-                            '${reward.pointsCost} Points',
+                            '${reward.pointsCost}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: isAffordable ? primaryColor : Colors.grey,
-                              fontSize: 14,
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -522,24 +536,25 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
                     // Limited quantity badge
                     if (reward.isLimited && reward.remainingQuantity != null)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: Colors.red.shade50,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: Colors.red.shade200),
                         ),
                         child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              Icons.timer,
-                              size: 16,
+                              Icons.access_time_filled,
+                              size: 12,
                               color: Colors.red.shade700,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               '${reward.remainingQuantity} left',
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.red.shade700,
                               ),
@@ -551,24 +566,25 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
                     // Affordability status
                     if (!isAffordable)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: Colors.grey.shade300),
                         ),
                         child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               Icons.lock,
-                              size: 16,
+                              size: 12,
                               color: Colors.grey.shade700,
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'Need ${reward.pointsCost - rewardsService.points} more',
+                              'Need ${reward.pointsCost - rewardsService.points}',
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.grey.shade700,
                               ),

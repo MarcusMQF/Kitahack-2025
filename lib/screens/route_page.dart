@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:lottie/lottie.dart';
 import '../services/theme_service.dart';
 import '../services/favorites_service.dart';
 import '../services/place_service.dart';
@@ -8,6 +7,7 @@ import '../config/api_keys.dart';
 import './route_screens/search_destination_page.dart';
 import './route_screens/route_planner_page.dart';
 import '../services/address_service.dart';
+import '../utils/lottie_cache.dart' as cache;
 
 class RoutePage extends StatefulWidget {
   const RoutePage({super.key});
@@ -393,16 +393,16 @@ class _RoutePageState extends State<RoutePage> {
   // Update for empty favorites state to match the design
   Widget _buildEmptyFavoritesState() {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 80),
+      padding: const EdgeInsets.only(bottom: 60),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
-              width: 150,
-              height: 150,
-              child: Lottie.network(
-                'https://lottie.host/afd0bcc2-4c2e-4907-b4bf-58f09a54a3ae/y3k9UjOHCQ.json',
+              width: 120,
+              height: 120,
+              child: cache.LottieCache().getLottieWidget(
+                url: cache.LottieCache.emptyFavoritesUrl,
                 repeat: true,
               ),
             ),
@@ -410,21 +410,9 @@ class _RoutePageState extends State<RoutePage> {
             const Text(
               'No Favorite Locations',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 15,
                 fontWeight: FontWeight.w500,
                 color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 45),
-              child: Text(
-                'Tap the star icon next to a location when searching to add it to your favorites',
-              style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade600,
-                ),
-                textAlign: TextAlign.center,
               ),
             ),
           ],

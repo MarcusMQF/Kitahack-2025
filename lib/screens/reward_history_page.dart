@@ -181,11 +181,11 @@ class _RewardHistoryPageState extends State<RewardHistoryPage> {
     switch (item.type) {
       case HistoryItemType.earned:
         statusColor = Colors.green;
-        statusIcon = Icons.add_circle;
+        statusIcon = Icons.directions_bus_filled;
         break;
       case HistoryItemType.redeemed:
         statusColor = primaryColor;
-        statusIcon = Icons.redeem;
+        statusIcon = Icons.wallet_giftcard;
         break;
       case HistoryItemType.expired:
         statusColor = Colors.red;
@@ -219,16 +219,26 @@ class _RewardHistoryPageState extends State<RewardHistoryPage> {
           children: [
             // Status icon
             Container(
-              width: 40,
-              height: 40,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
                 color: statusColor.withOpacity(0.1),
                 shape: BoxShape.circle,
-                border: Border.all(color: statusColor.withOpacity(0.3)),
+                boxShadow: [
+                  BoxShadow(
+                    color: statusColor.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                    spreadRadius: -2,
+                  ),
+                ],
               ),
-              child: Icon(
-                statusIcon,
-                color: statusColor,
+              child: Center(
+                child: Icon(
+                  statusIcon,
+                  color: statusColor,
+                  size: 20,
+                ),
               ),
             ),
             const SizedBox(width: 16),
@@ -259,7 +269,7 @@ class _RewardHistoryPageState extends State<RewardHistoryPage> {
             
             // Points amount
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
                 color: item.points > 0
                     ? Colors.green.withOpacity(0.1)
@@ -271,12 +281,24 @@ class _RewardHistoryPageState extends State<RewardHistoryPage> {
                       : Colors.red.withOpacity(0.3),
                 ),
               ),
-              child: Text(
-                item.points > 0 ? '+${item.points}' : '${item.points}',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: item.points > 0 ? Colors.green : Colors.red,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    item.points > 0 ? Icons.star : Icons.remove_circle_outline,
+                    size: 14,
+                    color: item.points > 0 ? Colors.green : Colors.red,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    item.points > 0 ? '+${item.points}' : '${item.points}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: item.points > 0 ? Colors.green : Colors.red,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
