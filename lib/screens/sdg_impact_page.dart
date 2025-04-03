@@ -72,6 +72,8 @@ class _SdgImpactPageState extends State<SdgImpactPage> with SingleTickerProvider
                 builder: (context) => const SdgShareCard(),
               );
             },
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
           ),
         ],
       ),
@@ -390,28 +392,38 @@ class _SdgImpactPageState extends State<SdgImpactPage> with SingleTickerProvider
                 ),
               ),
               const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(
-                      Icons.share,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                    SizedBox(width: 4),
-                    Text(
-                      'Share',
-                      style: TextStyle(
+              GestureDetector(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => const SdgShareCard(),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(
+                        Icons.share,
                         color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                        size: 16,
                       ),
-                    ),
-                  ],
+                      SizedBox(width: 4),
+                      Text(
+                        'Share',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
