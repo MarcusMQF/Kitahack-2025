@@ -116,4 +116,50 @@ class TransitUtils {
       return 4.00; // Very long trip
     }
   }
+
+  /// Calculates estimated CO2 savings for a transit trip compared to car travel
+  static double calculateCO2Savings(double distanceKm, String transitType) {
+    // CO2 emissions per km for different transport modes in kg
+    final Map<String, double> co2PerKm = {
+      'car': 0.192, // Average car emits 192g CO2 per km
+      'bus': 0.104, // Bus emits 104g CO2 per km per passenger
+      'subway': 0.041, // Subway/Metro emits 41g CO2 per km per passenger
+      'tram': 0.035, // Tram emits 35g CO2 per km per passenger
+      'train': 0.028, // Train emits 28g CO2 per km per passenger
+      'ferry': 0.120, // Ferry emits 120g CO2 per km per passenger
+      'walk': 0.0, // Walking emits 0g CO2
+    };
+
+    // Calculate CO2 emitted by car vs public transit
+    final double carEmissions = co2PerKm['car']! * distanceKm;
+    final double transitEmissions = co2PerKm[transitType] ?? co2PerKm['bus']! * distanceKm;
+    
+    // Calculate CO2 savings
+    return carEmissions - transitEmissions;
+  }
+
+  /// Calculates steps walked based on distance
+  static int calculateStepsWalked(double walkingDistanceKm) {
+    // Average person walks ~1312 steps per km
+    const int stepsPerKm = 1312;
+    return (walkingDistanceKm * stepsPerKm).round();
+  }
+
+  /// Calculates calories burned from walking
+  static int calculateCaloriesBurned(int steps) {
+    // Average person burns ~0.04 calories per step
+    const double caloriesPerStep = 0.04;
+    return (steps * caloriesPerStep).round();
+  }
+
+  /// Returns SDG number and name based on impact type
+  static Map<String, String> getSdgDetails(String impactType) {
+    final Map<String, Map<String, String>> sdgMap = {
+      'co2': {'number': '13', 'name': 'Climate Action'},
+      'walk': {'number': '3', 'name': 'Good Health & Well-being'},
+      'transit': {'number': '11', 'name': 'Sustainable Cities & Communities'},
+    };
+    
+    return sdgMap[impactType] ?? {'number': '?', 'name': 'Unknown SDG'};
+  }
 } 

@@ -5,6 +5,7 @@ class TransitRecord {
   final DateTime? exitTime;
   final double fare;
   final int pointsEarned;
+  final int creditsEarned;
 
   TransitRecord({
     required this.entryStation,
@@ -13,6 +14,7 @@ class TransitRecord {
     this.exitTime,
     required this.fare,
     required this.pointsEarned,
+    required this.creditsEarned,
   });
 
   // Create a copy with updated values
@@ -23,6 +25,7 @@ class TransitRecord {
     DateTime? exitTime,
     double? fare,
     int? pointsEarned,
+    int? creditsEarned,
   }) {
     return TransitRecord(
       entryStation: entryStation ?? this.entryStation,
@@ -31,6 +34,7 @@ class TransitRecord {
       exitTime: exitTime ?? this.exitTime,
       fare: fare ?? this.fare,
       pointsEarned: pointsEarned ?? this.pointsEarned,
+      creditsEarned: creditsEarned ?? this.creditsEarned,
     );
   }
 
@@ -43,6 +47,7 @@ class TransitRecord {
       'exitTime': exitTime?.millisecondsSinceEpoch,
       'fare': fare,
       'pointsEarned': pointsEarned,
+      'creditsEarned': creditsEarned,
     };
   }
 
@@ -55,6 +60,7 @@ class TransitRecord {
       exitTime: map['exitTime'] != null ? DateTime.fromMillisecondsSinceEpoch(map['exitTime']) : null,
       fare: map['fare'],
       pointsEarned: map['pointsEarned'],
+      creditsEarned: map['creditsEarned'] ?? map['pointsEarned'] * 3, // Fallback for backward compatibility
     );
   }
 } 

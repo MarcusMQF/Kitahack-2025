@@ -164,7 +164,7 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
         final nextRank = rewardsService.nextRank;
         final progress = rewardsService.progressToNextRank;
         final pointsToNext = rewardsService.pointsToNextRank;
-        final totalPoints = rewardsService.points;
+        final totalCredits = rewardsService.credits;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
@@ -172,7 +172,7 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Current rank card with upgrade progress
-              _buildRankCard(currentRank, nextRank, progress, pointsToNext, totalPoints),
+              _buildRankCard(currentRank, nextRank, progress, pointsToNext, totalCredits),
               
               const SizedBox(height: 24),
               
@@ -206,19 +206,19 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
                 children: [
                   Expanded(
                     child: _buildStatCard(
-                      title: 'Total Points',
+                      title: 'Available Points',
                       value: '${rewardsService.points}',
-                      icon: Icons.star,
-                      color: Colors.blue,
+                      icon: Icons.star_rounded,
+                      color: const Color.fromARGB(255, 255, 189, 45),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildStatCard(
-                      title: 'Used Points',
-                      value: _calculateUsedPoints(rewardsService.pointsHistory),
-                      icon: Icons.shopping_cart_checkout,
-                      color: Colors.green,
+                      title: 'TransitGo Credits',
+                      value: '${rewardsService.credits}',
+                      icon: Icons.diamond_rounded,
+                      color: Colors.purple
                     ),
                   ),
                 ],
@@ -352,8 +352,8 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
     LoyaltyRank currentRank, 
     LoyaltyRank? nextRank, 
     double progress, 
-    int pointsToNext,
-    int totalPoints
+    int creditsToNext,
+    int totalCredits
   ) {
     return Card(
       elevation: 8,
@@ -473,14 +473,14 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
                     border: Border.all(color: Colors.amber.shade200),
                   ),
                   child: TweenAnimationBuilder(
-                    tween: IntTween(begin: 0, end: totalPoints),
+                    tween: IntTween(begin: 0, end: totalCredits),
                     duration: const Duration(milliseconds: 1200),
                     curve: Curves.easeOutCubic,
                     builder: (context, value, child) {
                       return Text(
-                        '$value Points',
+                        '$value TransitGo Credits',
                         style: TextStyle(
-                          fontSize: 28,
+                          fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Colors.amber.shade700,
                         ),
@@ -518,7 +518,7 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
                                 ),
                               ),
                               Text(
-                                '${totalPoints - currentRank.pointsRequired} of ${nextRank.pointsRequired - currentRank.pointsRequired} pts',
+                                '${totalCredits - currentRank.creditsRequired} of ${nextRank.creditsRequired - currentRank.creditsRequired} credits',
                                 style: TextStyle(
                                   color: Colors.grey.shade500,
                                   fontSize: 11,
@@ -534,7 +534,7 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
                               border: Border.all(color: Colors.blue.shade200),
                             ),
                             child: Text(
-                              'Need $pointsToNext more',
+                              'Need $creditsToNext more',
                               style: TextStyle(
                                 color: Colors.blue.shade700,
                                 fontWeight: FontWeight.bold,
@@ -636,7 +636,7 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
                                     ),
                                   ),
                                   Text(
-                                    '${currentRank.pointsRequired} pts',
+                                    '${currentRank.creditsRequired} credits',
                                     style: TextStyle(
                                       color: Colors.grey.shade600,
                                       fontSize: 10,
@@ -662,7 +662,7 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
                                     ),
                                   ),
                                   Text(
-                                    '${nextRank.pointsRequired} pts',
+                                    '${nextRank.creditsRequired} credits',
                                     style: TextStyle(
                                       color: Colors.grey.shade600,
                                       fontSize: 10,
@@ -1346,16 +1346,6 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
         );
       },
     );
-  }
-
-  String _calculateUsedPoints(List<RewardHistoryItem> history) {
-    int used = 0;
-    for (var item in history) {
-      if (item.points < 0) {
-        used += item.points.abs();
-      }
-    }
-    return '$used';
   }
 
   IconData _getCategoryIcon(RewardCategory category) {

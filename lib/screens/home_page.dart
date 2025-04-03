@@ -11,8 +11,12 @@ import 'package:provider/provider.dart';
 import '../services/rewards_service.dart';
 import '../services/theme_service.dart'; // Add theme service import
 import 'reward_page.dart';
-import 'route_page.dart';
-import 'top_up_page.dart';
+import '../services/sdg_impact_service.dart';
+import 'sdg_impact_page.dart';
+import '../services/wallet_service.dart';
+import 'transit_history_page.dart';
+import 'transit_assistant_page.dart'; // Add the new transit assistant page
+import 'pay_for_transit_page.dart'; // For the Scan & Pay page
 
 class Particle {
   double x;
@@ -247,6 +251,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final rewardsService = Provider.of<RewardsService>(context);
     final themeService = Provider.of<ThemeService>(context); // Add ThemeService
     final points = rewardsService.points;
+    final credits = rewardsService.credits;
     final currentRank = rewardsService.currentRank;
     final nextRank = rewardsService.nextRank;
     final progressToNext = rewardsService.progressToNextRank;
@@ -525,7 +530,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                                     crossAxisAlignment: CrossAxisAlignment.end,
                                                     children: [
                                                       Text(
-                                                        points.toStringAsFixed(0),
+                                                        credits.toStringAsFixed(0),
                                                         style: const TextStyle(
                                                           color: Colors.white,
                                                           fontSize: 40,
@@ -537,7 +542,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                                       const Padding(
                                                         padding: EdgeInsets.only(bottom: 6),
                                                         child: Text(
-                                                          'pts',
+                                                          'credits',
                                                           style: TextStyle(
                                                             color: Colors.white70,
                                                             fontSize: 16,
@@ -553,15 +558,28 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                           ),
                                         ),
                                         
+                                        // Show available points below credits
+                                        Padding(
+                                          padding: const EdgeInsets.only(bottom: 12),
+                                          child: Text(
+                                            '$points points available for rewards',
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.normal,
+                                            ),
+                                          ),
+                                        ),
+                                        
                                         // Progress indicator (shown only when expanded)
                                         if (nextRank != null) 
                                           AnimatedProgressBar(
                                             progress: progressToNext, // This is already correct (0.0 to 1.0)
-                                            maxValue: (nextRank.pointsRequired - currentRank.pointsRequired).toDouble(), // Difference between ranks
-                                            currentValue: (points - currentRank.pointsRequired).toDouble(), // Points accumulated in current rank
+                                            maxValue: (nextRank.creditsRequired - currentRank.creditsRequired).toDouble(), // Difference between ranks
+                                            currentValue: (credits - currentRank.creditsRequired).toDouble(), // Points accumulated in current rank
                                             isExpanded: isExpanded,
-                                            leftLabel: 'Need $pointsToNext more pts to ${nextRank.name}',
-                                            rightLabel: '${nextRank.pointsRequired - currentRank.pointsRequired} pts',
+                                            leftLabel: 'Need $pointsToNext more credits to ${nextRank.name}',
+                                            rightLabel: '${nextRank.creditsRequired - currentRank.creditsRequired} credits',
                                           )
                                         else 
                                           // Custom display for highest rank achieved
@@ -591,7 +609,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                                     ],
                                                   ),
                                                   Text(
-                                                    '${currentRank.pointsRequired}',
+                                                    '${currentRank.creditsRequired}',
                                                     style: const TextStyle(
                                                       color: Colors.white70,
                                                       fontSize: 14,
@@ -643,6 +661,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                                         );
                                                       },
                                                       borderRadius: BorderRadius.circular(16),
+                                                      highlightColor: Colors.transparent,
+                                                      splashColor: Colors.transparent,
                                                       child: Padding(
                                                         padding: const EdgeInsets.symmetric(vertical: 14.0),
                                                         child: Row(
@@ -696,6 +716,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                                         );
                                                       },
                                                       borderRadius: BorderRadius.circular(16),
+                                                      highlightColor: Colors.transparent,
+                                                      splashColor: Colors.transparent,
                                                       child: Padding(
                                                         padding: const EdgeInsets.symmetric(vertical: 14.0),
                                                         child: Row(
@@ -734,7 +756,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                           ],
                         ),
                         
-                        const SizedBox(height: 25),
+                        const SizedBox(height: 30),
                         
                         // Quick actions section header
                         Padding(
@@ -765,24 +787,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                           children: [
                             Expanded(
                               child: _buildQuickActionCard(
-                                icon: Icons.directions_bus,
-                                label: 'Find Bus',
-                                color: Colors.blue,
-                                onTap: () {},
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildQuickActionCard(
-                                icon: Icons.map,
-                                label: 'Routes',
-                                color: Colors.green,
+                                icon: Icons.chat_bubble_outlined,
+                                label: 'Assistant',
+                                color: Colors.purple,
                                 onTap: () {
-                                  // Navigate to the route page
+                                  // Navigate to the transit assistant page
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const RoutePage(),
+                                      builder: (context) => const TransitAssistantPage(),
                                     ),
                                   );
                                 },
@@ -791,15 +804,31 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                             const SizedBox(width: 12),
                             Expanded(
                               child: _buildQuickActionCard(
-                                icon: Icons.credit_card,
-                                label: 'Top Up',
-                                color: Colors.orange,
+                                icon: Icons.contactless,
+                                label: 'Scan & Pay',
+                                color: Colors.teal,
                                 onTap: () {
-                                  // Navigate to the top up page
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const TopUpPage(),
+                                      builder: (context) => const PayForTransitPage(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildQuickActionCard(
+                                icon: Icons.train_rounded,
+                                label: 'Your Trips',
+                                color: Colors.orange,
+                                onTap: () {
+                                  // Navigate to the transit history page
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const TransitHistoryPage(),
                                     ),
                                   );
                                 },
@@ -808,91 +837,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                           ],
                         ),
                         
-                        const SizedBox(height: 32),
-                        
-                        // Nearby buses section with theme colors
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 5,
-                                    height: 24,
-                                    decoration: BoxDecoration(
-                                      color: themeService.primaryColor,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'Nearby Buses',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: themeService.primaryColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: themeService.primaryColor.withOpacity(0.3),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 6,
-                                      height: 6,
-                                      decoration: BoxDecoration(
-                                        color: themeService.primaryColor,
-                                        borderRadius: BorderRadius.circular(3),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'Live updates',
-                                      style: TextStyle(
-                                        color: themeService.primaryColor,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        _buildBusCard(
-                          busNumber: 'B1',
-                          from: 'UM Central',
-                          to: 'Shopping Mall',
-                          time: '5 min',
-                          crowdLevel: 'Low',
-                          distance: '350m',
-                          isPulsing: false,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildBusCard(
-                          busNumber: 'A3',
-                          from: 'Market Place',
-                          to: 'Business District',
-                          time: '12 min',
-                          crowdLevel: 'Medium',
-                          distance: '750m',
-                          isPulsing: false,
-                        ),
-                        
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 30),
                         
                         // Recent trips section with theme colors
                         Padding(
@@ -921,18 +866,26 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                   ),
                                 ],
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: themeService.primaryColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  'See All',
-                                  style: TextStyle(
-                                    color: themeService.primaryColor,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const TransitHistoryPage()),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: themeService.primaryColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    'See All',
+                                    style: TextStyle(
+                                      color: themeService.primaryColor,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -940,26 +893,256 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                           ),
                         ),
                         const SizedBox(height: 8),
-                        _buildTripHistoryCard(
-                          date: 'Today',
-                          route: 'Central Station → Downtown',
-                          time: '10:30 AM',
-                          points: '+125',
-                        ),
-                        const SizedBox(height: 12),
-                        _buildTripHistoryCard(
-                          date: 'Yesterday',
-                          route: 'Airport → Central Station',
-                          time: '7:45 PM',
-                          points: '+200',
+                        
+                        // Get actual trip history from the wallet service
+                        Consumer<WalletService>(
+                          builder: (context, walletService, child) {
+                            final tripHistory = walletService.tripHistory;
+                            
+                            // If no trips, show a message
+                            if (tripHistory.isEmpty) {
+                              return Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade50,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: Colors.grey.shade200),
+                                ),
+                                child: Center(
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.directions_bus_outlined,
+                                        color: Colors.grey.shade400,
+                                        size: 40,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'No trips completed yet',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }
+                            
+                            // Get the latest 3 trips (or less if fewer than 3 trips)
+                            final latestTrips = tripHistory.take(3).toList();
+                            
+                            return Column(
+                              children: latestTrips.map((trip) {
+                                // Format date for display
+                                final date = _formatTripDate(trip.exitTime!);
+                                
+                                // Format time for display
+                                final time = _formatTripTime(trip.exitTime!);
+                                
+                                // Determine transit type based on station names
+                                final isTrain = _isTrainStation(trip.entryStation) || _isTrainStation(trip.exitStation ?? '');
+                                
+                                return Column(
+                                  children: [
+                                    _buildTripHistoryCard(
+                                      date: date,
+                                      route: '${trip.entryStation} → ${trip.exitStation}',
+                                      time: time,
+                                      points: '+${trip.pointsEarned}',
+                                      isTrain: isTrain,
+                                    ),
+                                    const SizedBox(height: 12),
+                                  ],
+                                );
+                              }).toList(),
+                            );
+                          },
                         ),
                         
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 22),
                         
+                        // Deals section with horizontal scrolling cards
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 5,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: Colors.blue,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Deals',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        // Horizontal scrollable deals cards
+                        Container(
+                          height: 200,
+                          margin: const EdgeInsets.only(bottom: 32),
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            padding: const EdgeInsets.only(right: 16),
+                            children: [
+                              _buildImageCard('lib/images/card1.png'),
+                              const SizedBox(width: 10),
+                              _buildImageCard('lib/images/card2.png'),
+                              const SizedBox(width: 10),
+                              _buildImageCard('lib/images/card3.png'),
+                            ],
+                          ),
+                        ),                        
                         // Cityscape banner
                         _buildCityscapeBanner(),
                         
                         const SizedBox(height: 20),
+
+                        // SDG Impact Card
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const SdgImpactPage()),
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // SDGs header
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF4C9F38).withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: const Icon(
+                                            Icons.eco,
+                                            color: Color(0xFF4C9F38),
+                                            size: 24,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        const Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'SDG Impact',
+                                                style: TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              Text(
+                                                'Your contribution to UN Goals',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.black54,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const Icon(
+                                          Icons.arrow_forward_ios,
+                                          color: Colors.black45,
+                                          size: 16,
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 16),
+                                    
+                                    // SDG impact metrics
+                                    Consumer<SdgImpactService>(
+                                      builder: (context, impactService, _) {
+                                        final impact = impactService.impact;
+                                        
+                                        return Column(
+                                          children: [
+                                            // SDG goals row
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                _buildSdgIcon('3', const Color(0xFF4C9F38)),
+                                                const SizedBox(width: 12),
+                                                _buildSdgIcon('11', const Color(0xFFF99D26)),
+                                                const SizedBox(width: 12),
+                                                _buildSdgIcon('13', const Color(0xFF48773E)),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 16),
+                                            
+                                            // Impact stats
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: _buildSdgStatItem(
+                                                    value: '${impact.co2Saved.toStringAsFixed(1)} kg',
+                                                    label: 'CO₂ Saved',
+                                                    icon: Icons.cloud_outlined,
+                                                    color: const Color(0xFF48773E),
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: _buildSdgStatItem(
+                                                    value: '${impact.stepsWalked}',
+                                                    label: 'Steps Walked',
+                                                    icon: Icons.directions_walk,
+                                                    color: const Color(0xFF4C9F38),
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: _buildSdgStatItem(
+                                                    value: '${impact.publicTransitTrips}',
+                                                    label: 'Trips',
+                                                    icon: Icons.directions_bus,
+                                                    color: const Color(0xFFF99D26),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -1032,264 +1215,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
   
-  Widget _buildBusCard({
-    required String busNumber,
-    required String from,
-    required String to,
-    required String time,
-    required String crowdLevel,
-    required String distance,
-    required bool isPulsing,
-  }) {
-    final themeService = Provider.of<ThemeService>(context);
-    final primaryColor = themeService.primaryColor;
-    
-    Color crowdColor;
-    if (crowdLevel == 'Low') {
-      crowdColor = Colors.green;
-    } else if (crowdLevel == 'Medium') {
-      crowdColor = Colors.orange;
-    } else {
-      crowdColor = Colors.red;
-    }
-    
-    // Ensure every bus card has a visible identifier
-    String displayBusNumber = busNumber.isEmpty ? "B1" : busNumber;
-    
-    return InkWell(
-      onTap: () {},
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade100, width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withAlpha(40),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
-              spreadRadius: -5,
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              padding: const EdgeInsets.all(0),
-              decoration: BoxDecoration(
-                color: primaryColor.withAlpha((0.1 * 255).round()),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: primaryColor.withAlpha((0.2 * 255).round()),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                    spreadRadius: -2,
-                  ),
-                ],
-              ),
-              child: isPulsing
-                ? TweenAnimationBuilder<double>(
-                    tween: Tween<double>(begin: 1.0, end: 1.15),
-                    duration: const Duration(milliseconds: 800),
-                    curve: Curves.easeInOut,
-                    builder: (context, value, child) {
-                      return AnimatedBuilder(
-                        animation: _controller,
-                        builder: (context, _) {
-                          final pulseValue = 1.0 + 0.1 * math.sin(_controller.value * math.pi * 2);
-                          return Transform.scale(
-                            scale: pulseValue,
-                            child: child,
-                          );
-                        },
-                        child: Center(
-                          child: Text(
-                            displayBusNumber,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: primaryColor,
-                              fontSize: 20,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  )
-                : Center(
-                    child: Text(
-                      displayBusNumber,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: primaryColor,
-                        fontSize: 20,
-                      ),
-                    ),
-                  ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        from,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: isPulsing ? primaryColor.withOpacity(0.1) : Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isPulsing ? primaryColor.withOpacity(0.3) : Colors.grey.shade200,
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          distance,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: isPulsing ? primaryColor : Colors.grey.shade600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Container(
-                        width: 18,
-                        height: 18,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(9),
-                        ),
-                        child: const Icon(
-                          Icons.arrow_downward,
-                          size: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        to,
-                        style: TextStyle(
-                          color: Colors.grey.shade700,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: isPulsing ? primaryColor : primaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: isPulsing ? [
-                      BoxShadow(
-                        color: primaryColor.withAlpha((0.2 * 255).round()),
-                        blurRadius: 6,
-                        offset: const Offset(0, 3),
-                        spreadRadius: -2,
-                      ),
-                    ] : null,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      isPulsing 
-                        ? TweenAnimationBuilder<double>(
-                            tween: Tween<double>(begin: 0, end: 1),
-                            duration: const Duration(milliseconds: 1500),
-                            curve: Curves.easeInOut,
-                            builder: (context, value, child) {
-                              return AnimatedBuilder(
-                                animation: _controller,
-                                builder: (context, _) {
-                                  final pulseValue = 1.0 + 0.2 * math.sin(_controller.value * math.pi);
-                                  return Transform.scale(
-                                    scale: pulseValue,
-                                    child: child,
-                                  );
-                                },
-                                child: const Icon(Icons.directions_bus, color: Colors.white, size: 14),
-                              );
-                            },
-                          )
-                        : Icon(Icons.timer, color: primaryColor, size: 14),
-                      const SizedBox(width: 4),
-                      Text(
-                        time,
-                        style: TextStyle(
-                          color: isPulsing ? Colors.white : primaryColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: crowdColor.withAlpha((0.1 * 255).round()),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: crowdColor.withAlpha((0.3 * 255).round()),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.people, size: 14, color: crowdColor),
-                      const SizedBox(width: 4),
-                      Text(
-                        crowdLevel,
-                        style: TextStyle(
-                          color: crowdColor,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  
   Widget _buildTripHistoryCard({
     required String date,
     required String route,
     required String time,
     required String points,
+    bool isTrain = false,
   }) {
     final themeService = Provider.of<ThemeService>(context);
     final primaryColor = themeService.primaryColor;
@@ -1332,7 +1263,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               ),
               child: Center(
                 child: Icon(
-                  Icons.directions_bus_filled,
+                  isTrain ? Icons.train : Icons.directions_bus_filled,
                   color: primaryColor,
                   size: 20,
                 ),
@@ -1454,35 +1385,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               ),
             ),
             
-            // Add a subtle animated overlay for some visual interest
-            Positioned.fill(
-              child: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return LinearGradient(
-                    colors: [
-                      Colors.white.withOpacity(0.1),
-                      Colors.white.withOpacity(0.05),
-                      Colors.white.withOpacity(0.0),
-                    ],
-                    stops: const [0.0, 0.5, 1.0],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ).createShader(bounds);
-                },
-                blendMode: BlendMode.srcOver,
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.transparent,
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            
             // City silhouette at the bottom
             Positioned(
               bottom: 0,
@@ -1589,7 +1491,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Set points to test different rank levels:'),
+              const Text('Set points/credits to test different rank levels:'),
               const SizedBox(height: 16),
               _buildPointsButton(context, 'Bronze', 0, rewardsService),
               const SizedBox(height: 8),
@@ -1696,6 +1598,153 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         minimumSize: const Size(double.infinity, 45),
       ),
       child: Text('$rank ($points pts)'),
+    );
+  }
+
+  // Helper methods for SDG widgets
+  Widget _buildSdgIcon(String number, Color color) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          number,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSdgStatItem({
+    required String value,
+    required String label,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        Icon(
+          icon,
+          color: color,
+          size: 22,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.black54,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Helper methods for trip date/time formatting
+  String _formatTripDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final dateOnly = DateTime(date.year, date.month, date.day);
+    
+    if (dateOnly == today) {
+      return 'Today';
+    } else if (dateOnly == yesterday) {
+      return 'Yesterday';
+    } else {
+      return '${date.day} ${_getMonthName(date.month)}, ${date.year}';
+    }
+  }
+  
+  String _getMonthName(int month) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return months[month - 1];
+  }
+  
+  String _formatTripTime(DateTime time) {
+    final hour = time.hour;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = hour >= 12 ? 'PM' : 'AM';
+    
+    final hourDisplay = hour > 12 ? hour - 12 : hour == 0 ? 12 : hour;
+    
+    return '$hourDisplay:$minute $period';
+  }
+
+  // Helper method to determine if a station is a train station
+  bool _isTrainStation(String stationName) {
+    // Keywords that indicate a train station (MRT/LRT)
+    final trainKeywords = [
+      'MRT', 'LRT', 'Train', 'Rail', 'Metro', 'Subway',
+      'Station', 'Terminal', 'Central', 'Junction',
+      'Line', 'Interchange', 'Depot', 'Platform',
+    ];
+    
+    // Check if any of the train keywords are in the station name
+    return trainKeywords.any((keyword) => 
+      stationName.toLowerCase().contains(keyword.toLowerCase()));
+  }
+
+  // Helper method to build a blank card
+
+  // Helper method to build an image card
+  Widget _buildImageCard(String imagePath) {
+    // Card dimensions
+    final cardWidth = MediaQuery.of(context).size.width * 0.75;
+    final cardHeight = 200.0;
+    
+    return Container(
+      width: cardWidth,
+      height: cardHeight,
+      margin: const EdgeInsets.only(left: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Image.asset(
+          imagePath,
+          width: cardWidth,
+          height: cardHeight,
+          fit: BoxFit.fill,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              width: cardWidth,
+              height: cardHeight,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }

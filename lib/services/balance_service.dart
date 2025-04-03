@@ -49,6 +49,7 @@ enum IconType {
   wallet,
   transfer,
   payment,
+  train,
 }
 
 class BalanceService extends ChangeNotifier {
@@ -122,11 +123,11 @@ class BalanceService extends ChangeNotifier {
     
     // Add demo transactions
     _addTransaction(
-      'Bus Fare Payment',
+      'MRT/LRT Fare',
       2.50,
       DateTime.now().subtract(const Duration(hours: 5)),
       true,
-      IconType.bus,
+      IconType.train,
     );
     
     _addTransaction(
@@ -143,6 +144,14 @@ class BalanceService extends ChangeNotifier {
       DateTime.now().subtract(const Duration(days: 3)),
       true,
       IconType.bus,
+    );
+    
+    _addTransaction(
+      'MRT/LRT Fare',
+      2.50,
+      DateTime.now().subtract(const Duration(days: 4)),
+      true,
+      IconType.train,
     );
     
     _addTransaction(

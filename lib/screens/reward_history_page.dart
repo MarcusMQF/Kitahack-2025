@@ -29,6 +29,8 @@ class _RewardHistoryPageState extends State<RewardHistoryPage> {
       builder: (context, rewardsService, child) {
         final history = rewardsService.pointsHistory;
         
+        print('RewardHistoryPage: Displaying ${history.length} history items');
+        
         // Apply filter if selected
         final filteredHistory = _selectedFilter == null
             ? history
@@ -267,40 +269,110 @@ class _RewardHistoryPageState extends State<RewardHistoryPage> {
               ),
             ),
             
-            // Points amount
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: item.points > 0
-                    ? Colors.green.withOpacity(0.1)
-                    : Colors.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: item.points > 0 
-                      ? Colors.green.withOpacity(0.3)
-                      : Colors.red.withOpacity(0.3),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+            // If this item has multiple rewards (points and credits), show both
+            if (item.hasMultipleRewards && item.creditsAmount != null)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Icon(
-                    item.points > 0 ? Icons.star : Icons.remove_circle_outline,
-                    size: 14,
-                    color: item.points > 0 ? Colors.green : Colors.red,
+                  // Points indicator
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 255, 245, 218),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: const Color.fromARGB(255, 255, 219, 134),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.star_rounded,
+                          size: 14,
+                          color: const Color.fromARGB(255, 255, 189, 45),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '+${item.points}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            color: const Color.fromARGB(255, 255, 189, 45),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    item.points > 0 ? '+${item.points}' : '${item.points}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                      color: item.points > 0 ? Colors.green : Colors.red,
+                  
+                  // Credits indicator
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.purple.shade50,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.purple.shade200,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.diamond_rounded,
+                          size: 14,
+                          color: Colors.purple.shade700,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '+${item.creditsAmount}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            color: Colors.purple.shade700,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
+              )
+            else
+              // Regular points amount for standard items
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: item.points > 0
+                      ? Colors.green.withOpacity(0.1)
+                      : Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: item.points > 0 
+                        ? Colors.green.withOpacity(0.3)
+                        : Colors.red.withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      item.points > 0 ? Icons.star : Icons.remove_circle_outline,
+                      size: 14,
+                      color: item.points > 0 ? Colors.green : Colors.red,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      item.points > 0 ? '+${item.points}' : '${item.points}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: item.points > 0 ? Colors.green : Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ),

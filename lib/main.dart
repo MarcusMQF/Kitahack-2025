@@ -4,6 +4,7 @@ import 'screens/home_page.dart';
 import 'screens/route_page.dart';
 import 'screens/reward_page.dart';
 import 'screens/qr_scanner_page.dart';
+import 'screens/sdg_impact_page.dart';
 import 'utils/app_theme.dart';
 import 'services/rewards_service.dart';
 import 'services/theme_service.dart';
@@ -16,6 +17,7 @@ import 'services/address_service.dart';
 import 'screens/ewallet_page.dart';
 import 'services/balance_service.dart';
 import 'services/wallet_service.dart';
+import 'services/sdg_impact_service.dart';
 import 'screens/welcome_page.dart';
 import 'widgets/splash_screen.dart';
 import 'screens/login_page.dart';
@@ -47,6 +49,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AddressService()),
         ChangeNotifierProvider(create: (_) => BalanceService()),
         ChangeNotifierProvider(create: (_) => WalletService()),
+        ChangeNotifierProvider(create: (_) => SdgImpactService()),
         Provider<PlaceService>(
           create: (_) => PlaceService(apiKey: ApiKeys.googleMapsApiKey),
         ),
@@ -97,6 +100,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     const EWalletPage(),
     const RoutePage(),
     const RewardPage(),
+    const SdgImpactPage(),
   ];
 
   void _onItemTapped(int index) {

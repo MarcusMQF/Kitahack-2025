@@ -387,216 +387,155 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
   }
 
   Widget _buildRewardCard(RewardItem reward, RewardsService rewardsService) {
-    final isExclusive = reward.isExclusive;
-    final isAffordable = rewardsService.canAfford(reward);
-    final Color cardColor = isExclusive ? Colors.amber : Colors.blue;
-    final themeService = Provider.of<ThemeService>(context, listen: false);
+    final themeService = Provider.of<ThemeService>(context);
     final primaryColor = themeService.primaryColor;
     
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Card(
-        elevation: 2,
-        shadowColor: Colors.black26,
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
+    return GestureDetector(
+      onTap: () {
+        _showRewardDetails(reward, rewardsService);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: isExclusive ? Colors.amber.shade200 : Colors.grey.shade200,
-            width: 1,
-          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+              spreadRadius: 2,
+            ),
+          ],
         ),
-        child: InkWell(
-          onTap: () {
-            _showRewardDetails(reward, rewardsService);
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Reward icon
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: cardColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: cardColor.withOpacity(0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                            spreadRadius: -2,
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Icon(
-                          _getCategoryIcon(reward.category),
-                          color: cardColor,
-                          size: 32,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    
-                    // Reward details
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  reward.title,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ),
-                              if (isExclusive)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.amber.shade100,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.amber.shade300),
-                                  ),
-                                  child: Text(
-                                    'Exclusive',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.amber.shade800,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            reward.description,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // First, show the image or category icon
+            Container(
+              height: 120,
+              decoration: BoxDecoration(
+                color: reward.isExclusive 
+                    ? Colors.amber.withOpacity(0.1) 
+                    : Colors.blue.withOpacity(0.1),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
                 ),
-                
-                const SizedBox(height: 16),
-                
-                // Bottom part with points and availability info
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Points cost
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: isAffordable ? primaryColor.withOpacity(0.1) : Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isAffordable ? primaryColor.withOpacity(0.3) : Colors.grey.shade300,
+              ),
+              child: Center(
+                child: Icon(
+                  _getCategoryIcon(reward.category),
+                  size: 48,
+                  color: reward.isExclusive 
+                      ? Colors.amber 
+                      : Colors.blue,
+                ),
+              ),
+            ),
+            
+            // Then show the details
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Special tag for exclusive rewards
+                  if (reward.isExclusive)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.shade100,
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.star,
-                            size: 14,
-                            color: isAffordable ? primaryColor : Colors.grey,
+                        child: Text(
+                          'EXCLUSIVE',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                            color: Colors.amber.shade800,
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${reward.pointsCost}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: isAffordable ? primaryColor : Colors.grey,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                    
-                    // Limited quantity badge
-                    if (reward.isLimited && reward.remainingQuantity != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.red.shade50,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.red.shade200),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
+                  
+                  // Reward title and category
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Icons.access_time_filled,
-                              size: 12,
-                              color: Colors.red.shade700,
-                            ),
-                            const SizedBox(width: 4),
                             Text(
-                              '${reward.remainingQuantity} left',
-                              style: TextStyle(
-                                fontSize: 11,
+                              reward.title,
+                              style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.red.shade700,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              '${reward.pointsCost} Points',
+                              style: TextStyle(
+                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
                         ),
                       ),
                       
-                    // Affordability status
-                    if (!isAffordable)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.lock,
-                              size: 12,
-                              color: Colors.grey.shade700,
+                      // Redeem button or Locked indicator
+                      if (rewardsService.canAfford(reward))
+                        ElevatedButton(
+                          onPressed: () {
+                            _showRewardDetails(reward, rewardsService);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryColor,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Need ${reward.pointsCost - rewardsService.points}',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey.shade700,
-                              ),
+                          ),
+                          child: const Text('Redeem'),
+                        )
+                      else
+                        ElevatedButton.icon(
+                          onPressed: null,
+                          icon: const Icon(Icons.lock_outline, size: 12),
+                          label: Text('${reward.pointsCost - rewardsService.points} more'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey.shade200,
+                            disabledBackgroundColor: Colors.grey.shade200,
+                            disabledForegroundColor: Colors.grey.shade700,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                          ],
+                          ),
                         ),
-                      ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 8),
+                  
+                  // Description
+                  Text(
+                    reward.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

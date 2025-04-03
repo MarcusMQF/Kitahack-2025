@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class LoyaltyRank {
   final String id;
   final String name;
-  final int pointsRequired;
+  final int creditsRequired;
   final Color color;
   final List<String> benefits;
   final String iconPath;
@@ -12,7 +12,7 @@ class LoyaltyRank {
   const LoyaltyRank({
     required this.id,
     required this.name,
-    required this.pointsRequired,
+    required this.creditsRequired,
     required this.color,
     required this.benefits,
     required this.iconPath,
@@ -22,7 +22,7 @@ class LoyaltyRank {
     LoyaltyRank(
       id: 'bronze',
       name: 'Bronze',
-      pointsRequired: 0,
+      creditsRequired: 0,
       color: Color(0xFFCD7F32),
       benefits: [
         'Basic reward catalog access',
@@ -34,7 +34,7 @@ class LoyaltyRank {
     LoyaltyRank(
       id: 'silver',
       name: 'Silver',
-      pointsRequired: 5000,
+      creditsRequired: 5000,
       color: Color(0xFFC0C0C0),
       benefits: [
         'All Bronze benefits',
@@ -47,7 +47,7 @@ class LoyaltyRank {
     LoyaltyRank(
       id: 'gold',
       name: 'Gold',
-      pointsRequired: 15000,
+      creditsRequired: 15000,
       color: Color(0xFFDAA520),
       benefits: [
         'All Silver benefits',
@@ -61,7 +61,7 @@ class LoyaltyRank {
     LoyaltyRank(
       id: 'platinum',
       name: 'Platinum',
-      pointsRequired: 30000,
+      creditsRequired: 30000,
       color: Color(0xFF3F51B5),
       benefits: [
         'All Gold benefits',
@@ -76,7 +76,7 @@ class LoyaltyRank {
     LoyaltyRank(
       id: 'diamond',
       name: 'Diamond',
-      pointsRequired: 50000,
+      creditsRequired: 50000,
       color: Color(0xFF9C27B0),
       benefits: [
         'All Platinum benefits',
@@ -91,12 +91,12 @@ class LoyaltyRank {
     ),
   ];
 
-  /// Get a rank based on the accumulated points
-  static LoyaltyRank getRankFromPoints(int points) {
+  /// Get a rank based on the accumulated credits
+  static LoyaltyRank getRankFromPoints(int credits) {
     LoyaltyRank currentRank = ranks.first;
     
     for (var rank in ranks) {
-      if (points >= rank.pointsRequired) {
+      if (credits >= rank.creditsRequired) {
         currentRank = rank;
       } else {
         break;
@@ -106,9 +106,9 @@ class LoyaltyRank {
     return currentRank;
   }
 
-  /// Get the next rank based on the current accumulated points
-  static LoyaltyRank? getNextRank(int points) {
-    LoyaltyRank currentRank = getRankFromPoints(points);
+  /// Get the next rank based on the current accumulated credits
+  static LoyaltyRank? getNextRank(int credits) {
+    LoyaltyRank currentRank = getRankFromPoints(credits);
     int currentIndex = ranks.indexOf(currentRank);
     
     if (currentIndex < ranks.length - 1) {
@@ -119,17 +119,17 @@ class LoyaltyRank {
   }
 
   /// Calculate progress to next rank (0.0 to 1.0)
-  static double getProgressToNextRank(int points) {
-    LoyaltyRank currentRank = getRankFromPoints(points);
-    LoyaltyRank? nextRank = getNextRank(points);
+  static double getProgressToNextRank(int credits) {
+    LoyaltyRank currentRank = getRankFromPoints(credits);
+    LoyaltyRank? nextRank = getNextRank(credits);
     
     if (nextRank == null) {
       return 1.0; // Already at max rank
     }
     
-    int pointsForCurrentRank = points - currentRank.pointsRequired;
-    int pointsNeededForNextRank = nextRank.pointsRequired - currentRank.pointsRequired;
+    int creditsForCurrentRank = credits - currentRank.creditsRequired;
+    int creditsNeededForNextRank = nextRank.creditsRequired - currentRank.creditsRequired;
     
-    return pointsForCurrentRank / pointsNeededForNextRank;
+    return creditsForCurrentRank / creditsNeededForNextRank;
   }
 }

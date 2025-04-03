@@ -80,6 +80,8 @@ class _RankDetailsPageState extends State<RankDetailsPage> {
       body: Consumer<RewardsService>(
         builder: (context, rewardsService, child) {
           final currentUserRank = rewardsService.currentRank;
+          final userPoints = rewardsService.points;
+          final userCredits = rewardsService.credits;
           
           return Column(
             children: [
@@ -99,13 +101,14 @@ class _RankDetailsPageState extends State<RankDetailsPage> {
                     itemBuilder: (context, index) {
                       final rank = LoyaltyRank.ranks[index];
                       final isCurrentRank = currentUserRank.id == rank.id;
-                      final isLocked = rewardsService.points < rank.pointsRequired;
+                      final isLocked = userCredits < rank.creditsRequired;
                       
                       return _buildRankCard(
                         rank,
                         isCurrentRank,
                         isLocked,
-                        rewardsService.points,
+                        userPoints,
+                        userCredits,
                       );
                     },
                   ),
@@ -148,6 +151,7 @@ class _RankDetailsPageState extends State<RankDetailsPage> {
     bool isCurrentRank,
     bool isLocked,
     int userPoints,
+    int userCredits,
   ) {
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 300),
@@ -253,14 +257,14 @@ class _RankDetailsPageState extends State<RankDetailsPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Points Required',
+                        'Credits Required',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.white70,
                         ),
                       ),
                       Text(
-                        '${rank.pointsRequired}',
+                        '${rank.creditsRequired}',
                         style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -268,20 +272,20 @@ class _RankDetailsPageState extends State<RankDetailsPage> {
                         ),
                       ),
                       
-                      if (isLocked && rank.pointsRequired > userPoints) ...[
+                      if (isLocked && rank.creditsRequired > userCredits) ...[
                         const SizedBox(height: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(16),
                           ),
                           child: Text(
-                            'Need ${rank.pointsRequired - userPoints} more points',
-                            style: const TextStyle(
+                            'Need ${rank.creditsRequired - userCredits} more credits',
+                            style: TextStyle(
                               fontSize: 12,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade700,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),

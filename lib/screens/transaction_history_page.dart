@@ -14,7 +14,7 @@ class TransactionHistoryPage extends StatefulWidget {
 class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   final ScrollController _scrollController = ScrollController();
   String _selectedFilter = 'All';
-  final List<String> _filters = ['All', 'Top Up', 'Bus Fare', 'Payments'];
+  final List<String> _filters = ['All', 'Top Up', 'Bus Fare', 'MRT/LRT Fare', 'Payments'];
   
   @override
   void dispose() {
@@ -76,8 +76,10 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
               return !tx.isDebit && tx.title == 'Top Up';
             } else if (_selectedFilter == 'Bus Fare') {
               return tx.isDebit && tx.title.contains('Bus');
+            } else if (_selectedFilter == 'MRT/LRT Fare') {
+              return tx.isDebit && tx.title.contains('MRT/LRT');
             } else if (_selectedFilter == 'Payments') {
-              return tx.isDebit && !tx.title.contains('Bus');
+              return tx.isDebit && !tx.title.contains('Bus') && !tx.title.contains('MRT/LRT');
             }
             return false;
           }).toList();
@@ -254,6 +256,9 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
       case IconType.payment:
         icon = Icons.payment;
         break;
+      case IconType.train:
+        icon = Icons.train;
+        break;
     }
     
     return Container(
@@ -393,6 +398,9 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
         break;
       case IconType.payment:
         icon = Icons.payment;
+        break;
+      case IconType.train:
+        icon = Icons.train;
         break;
     }
     

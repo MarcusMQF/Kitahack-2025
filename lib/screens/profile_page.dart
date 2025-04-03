@@ -450,9 +450,13 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                   _buildMenuOption(
                     icon: Icons.logout,
                     title: 'Log Out',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.pushReplacementNamed(context, '/welcome');
+                    },
                     textColor: Colors.red,
                   ),
+
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
@@ -585,7 +589,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 Row(
                   children: [
                     Icon(
-                      Icons.monetization_on,
+                      Icons.star_rounded,
                       color: Colors.amber.shade700,
                       size: 18,
                     ),

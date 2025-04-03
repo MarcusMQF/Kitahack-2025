@@ -6,9 +6,7 @@ import 'dart:math' as math;
 import '../widgets/particle_background.dart';
 import 'top_up_page.dart';
 import 'transaction_history_page.dart';
-import 'pay_for_transit_page.dart';
 import '../services/wallet_service.dart';
-import 'transit_history_page.dart';
 
 class EWalletPage extends StatefulWidget {
   const EWalletPage({super.key});
@@ -97,6 +95,7 @@ class _EWalletPageState extends State<EWalletPage> with SingleTickerProviderStat
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         foregroundColor: Colors.white,
       ),
       floatingActionButton: AnimatedOpacity(
@@ -152,11 +151,9 @@ class _EWalletPageState extends State<EWalletPage> with SingleTickerProviderStat
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Quick actions
-                        _buildQuickActions(),
                         
                         const SizedBox(height: 24),
-                        
+ 
                         // Recent transactions section
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -283,6 +280,9 @@ class _EWalletPageState extends State<EWalletPage> with SingleTickerProviderStat
                                       break;
                                     case IconType.payment:
                                       icon = Icons.payment;
+                                      break;
+                                    case IconType.train:
+                                      icon = Icons.train;
                                       break;
                                   }
                                   
@@ -580,136 +580,6 @@ class _EWalletPageState extends State<EWalletPage> with SingleTickerProviderStat
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildQuickActions() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Quick Actions',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildQuickActionItem(
-                icon: Icons.account_balance_wallet_outlined,
-                label: 'Top Up',
-                onTap: () => _showTopUpDialog(context, Provider.of<ThemeService>(context, listen: false).primaryColor),
-                color: Colors.blue,
-              ),
-              _buildQuickActionItem(
-                icon: Icons.train_rounded,
-                label: 'Transit',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ChangeNotifierProvider.value(
-                        value: Provider.of<WalletService>(context, listen: false),
-                        child: const TransitHistoryPage(),
-                      ),
-                    ),
-                  );
-                },
-                color: Colors.purple,
-              ),
-              _buildQuickActionItem(
-                icon: Icons.qr_code_scanner_outlined,
-                label: 'Scan & Pay',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const PayForTransitPage()),
-                  );
-                },
-                color: Colors.teal,
-              ),
-              _buildQuickActionItem(
-                icon: Icons.history_outlined,
-                label: 'History',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ChangeNotifierProvider.value(
-                        value: Provider.of<BalanceService>(context, listen: false),
-                        child: const TransactionHistoryPage(),
-                      ),
-                    ),
-                  );
-                },
-                color: Colors.orange,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildQuickActionItem({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    required Color color,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 55,
-            height: 55,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 26,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
-          ),
-        ],
       ),
     );
   }

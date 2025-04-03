@@ -54,6 +54,7 @@ class _PayForTransitPageState extends State<PayForTransitPage> {
               : null,
           fare: tripMap['fare'].toDouble(),
           pointsEarned: tripMap['pointsEarned'],
+          creditsEarned: tripMap['creditsEarned'] ?? tripMap['pointsEarned'] * 3, // Fallback for backward compatibility
         );
         _hasActiveTrip = true;
         
@@ -67,7 +68,7 @@ class _PayForTransitPageState extends State<PayForTransitPage> {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('You have unclaimed points from your last trip'),
+                content: Text('You have unclaimed rewards from your last trip'),
                 duration: Duration(seconds: 3),
                 behavior: SnackBarBehavior.floating,
               ),
@@ -124,6 +125,7 @@ class _PayForTransitPageState extends State<PayForTransitPage> {
         entryTime: now,
         fare: 0.0, // Will be calculated on exit
         pointsEarned: 0, // Will be calculated on exit
+        creditsEarned: 0, // Will be calculated on exit
       );
       _isScanning = false;
       _showSuccessScreen = true;
@@ -151,8 +153,9 @@ class _PayForTransitPageState extends State<PayForTransitPage> {
     // Real-world pricing would depend on station-to-station distance
     final fare = (tripDuration < 30) ? 2.50 : 4.00;
     
-    // Fixed points per trip: 150 points
-    const pointsEarned = 150;
+    // Fixed points per trip (~50 points and ~150 credits)
+    const pointsEarned = 50;
+    const creditsEarned = 150;
     
     // Update the current trip
     setState(() {
@@ -161,6 +164,7 @@ class _PayForTransitPageState extends State<PayForTransitPage> {
         exitTime: now,
         fare: fare,
         pointsEarned: pointsEarned,
+        creditsEarned: creditsEarned,
       );
       
       _isScanning = false;
@@ -173,37 +177,61 @@ class _PayForTransitPageState extends State<PayForTransitPage> {
     
     // Deduct fare from both wallet services
     walletService.deductMoney(fare);
-    balanceService.deductBalance(fare, title: 'MRT/LRT Fare', iconType: IconType.bus);
+    balanceService.deductBalance(fare, title: 'MRT/LRT Fare', iconType: IconType.train);
   }
 
-  void _claimPoints() {
+  void _claimPoints() async {
     if (_currentTrip == null) return;
     
     final rewardsService = Provider.of<RewardsService>(context, listen: false);
     final walletService = Provider.of<WalletService>(context, listen: false);
     
-    // Add points to rewards
-    rewardsService.addPoints(
-      _currentTrip!.pointsEarned,
-      title: 'Transit trip from ${_currentTrip!.entryStation} to ${_currentTrip!.exitStation}',
-    );
-    
-    // Add trip to history
-    walletService.addTripToHistory(_currentTrip!);
-    
-    // Reset the state
-    setState(() {
-      _hasActiveTrip = false;
-      _showSuccessScreen = false;
-      _showClaimPoints = false;
-      _currentTrip = null;
-    });
-    
-    // Clear the active trip from storage
-    _clearActiveTrip();
-    
-    // Navigate back to home page (index 0 in bottom navigation)
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    try {
+      // Add points and credits separately to rewards - this will trigger saving to SharedPreferences
+      await rewardsService.claimTripRewards(
+        _currentTrip!.pointsEarned,
+        _currentTrip!.creditsEarned,
+        title: 'Transit trip from ${_currentTrip!.entryStation} to ${_currentTrip!.exitStation}',
+      );
+      
+      // Add trip to history after rewards are claimed
+      walletService.addTripToHistory(_currentTrip!);
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Rewards claimed successfully!'),
+          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.green,
+        ),
+      );
+      
+      // Clear the active trip from storage first
+      await _clearActiveTrip();
+      
+      // Reset the state after everything is saved
+      setState(() {
+        _hasActiveTrip = false;
+        _showSuccessScreen = false;
+        _showClaimPoints = false;
+        _currentTrip = null;
+      });
+      
+      // Navigate back to home page (index 0 in bottom navigation)
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } catch (e) {
+      // Show error if claiming fails
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to claim rewards: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      print('Error claiming rewards: $e');
+    }
   }
 
   void _resetScreen() {
