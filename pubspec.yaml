@@ -30,6 +30,11 @@ dependencies:
   webview_flutter: ^4.10.0
   qr_flutter: ^4.1.0
   slide_to_act: ^2.0.2
+  google_generative_ai: ^0.4.6
+  firebase_core: ^3.13.0
+  speech_to_text: ^7.0.0
+  flutter_launcher_icons: ^0.14.3
+  path_provider: ^2.1.2
 
 dev_dependencies:
   flutter_test:
@@ -44,7 +49,21 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - lib/images/
-    - assets/lottie/
     - .env
+
+# Flutter Launcher Icons configuration
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "lib/images/icon.png"
+  adaptive_icon_background: "#0275F1" # Use blue background color matching the icon
+  adaptive_icon_foreground: "lib/images/icon.png"
+  remove_alpha_ios: true
+  web:
+    generate: false
+  windows:
+    generate: false
+  macos:
+    generate: false
 
 

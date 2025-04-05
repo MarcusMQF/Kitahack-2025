@@ -130,7 +130,7 @@ class _RewardPageState extends State<RewardPage> with SingleTickerProviderStateM
                       indicatorSize: TabBarIndicatorSize.label,
                       tabs: const [
                         Tab(text: 'Overview'),
-                        Tab(text: 'Rewards'),
+                        Tab(text: 'Redeem'),
                         Tab(text: 'History'),
                       ],
                     ),

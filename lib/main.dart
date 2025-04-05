@@ -5,9 +5,11 @@ import 'screens/route_page.dart';
 import 'screens/reward_page.dart';
 import 'screens/qr_scanner_page.dart';
 import 'screens/sdg_impact_page.dart';
+import 'screens/my_vouchers_page.dart';
 import 'utils/app_theme.dart';
 import 'services/rewards_service.dart';
 import 'services/theme_service.dart';
+import 'services/profile_service.dart';
 import 'services/location_service.dart';
 import 'services/place_service.dart';
 import 'services/favorites_service.dart';
@@ -18,14 +20,27 @@ import 'screens/ewallet_page.dart';
 import 'services/balance_service.dart';
 import 'services/wallet_service.dart';
 import 'services/sdg_impact_service.dart';
+import 'services/gemini_service.dart';
 import 'screens/welcome_page.dart';
 import 'widgets/splash_screen.dart';
 import 'screens/login_page.dart';
 import 'screens/signup_page.dart';
 import 'utils/lottie_cache.dart' as cache;
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    debugPrint("Firebase initialized successfully");
+  } catch (e) {
+    debugPrint("Failed to initialize Firebase: $e");
+  }
   
   // Load environment variables from .env file
   try {
@@ -44,6 +59,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => RewardsService()),
         ChangeNotifierProvider(create: (_) => ThemeService()),
+        ChangeNotifierProvider(create: (_) => ProfileService()),
         ChangeNotifierProvider(create: (_) => LocationService()),
         ChangeNotifierProvider(create: (_) => FavoritesService()),
         ChangeNotifierProvider(create: (_) => AddressService()),
@@ -52,6 +68,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => SdgImpactService()),
         Provider<PlaceService>(
           create: (_) => PlaceService(apiKey: ApiKeys.googleMapsApiKey),
+        ),
+        Provider<GeminiService>(
+          create: (_) => GeminiService(),
         ),
       ],
       child: const MyApp(),
@@ -77,6 +96,8 @@ class MyApp extends StatelessWidget {
             '/login': (context) => const LoginPage(),
             '/signup': (context) => const SignupPage(),
             '/main': (context) => const MainNavigationScreen(),
+            '/rewards': (context) => const RewardPage(),
+            '/vouchers': (context) => const MyVouchersPage(),
           },
         );
       },

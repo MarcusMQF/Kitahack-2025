@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "342074446418",
+    "project_id": "transitgo-7017c",
+    "storage_bucket": "transitgo-7017c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:342074446418:android:25ce76f18b53a83568058b",
+        "android_client_info": {
+          "package_name": "com.transitgo.transit_go_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCms4abTLxa0DpPP00cLPOpCE_zLEfrnRU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -9,8 +9,10 @@ import '../services/theme_service.dart'; // Add theme service import
 import 'reward_page.dart';
 import 'package:url_launcher/url_launcher.dart'; // Add url_launcher import
 import 'webview_page.dart'; // Import WebViewPage
+import '../services/profile_service.dart';
 
-// Class to store shared profile data
+// Keep the ProfileData class temporarily for backward compatibility
+// It will be removed once all references are updated to ProfileService
 class ProfileData {
   static File? sharedProfileImage;
   static String username = 'Marcus';
@@ -27,14 +29,11 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStateMixin {
-  File? _profileImage;
   late AnimationController _animationController;
-
+  
   @override
   void initState() {
     super.initState();
-    // Use existing image if available
-    _profileImage = ProfileData.sharedProfileImage;
     
     // Initialize animation controller
     _animationController = AnimationController(
@@ -50,6 +49,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   }
 
   Future<void> _pickImageFromGallery() async {
+    final profileService = Provider.of<ProfileService>(context, listen: false);
+    
     try {
       final picker = ImagePicker();
       final XFile? returnedImage = await picker.pickImage(source: ImageSource.gallery);
@@ -60,10 +61,11 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       
       // Verify the file exists before setting it
       if (await imageFile.exists()) {
-        setState(() {
-          _profileImage = imageFile;
-          ProfileData.sharedProfileImage = imageFile;
-        });
+        // Update the profile image in the service
+        await profileService.updateProfileImage(imageFile);
+        
+        // Also update the legacy ProfileData for backward compatibility
+        ProfileData.sharedProfileImage = imageFile;
       }
     } catch (e) {
       // Show error dialog
@@ -215,24 +217,40 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                               child: Stack(
                                 children: [
                                   Container(
-                                    height: 100,
-                                    width: 100,
+                                    width: 110,
+                                    height: 110,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: Colors.grey.shade300,
-                                      border: Border.all(color: Colors.white, width: 4),
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 3,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.1),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
                                     ),
                                     child: ClipOval(
-                                      child: _profileImage != null
-                                          ? Image.file(
-                                              _profileImage!,
-                                              fit: BoxFit.cover,
-                                            )
-                                          : const Icon(
-                                              Icons.person,
-                                              size: 50,
-                                              color: Colors.white,
-                                            ),
+                                      child: Consumer<ProfileService>(
+                                        builder: (context, profileService, _) {
+                                          return profileService.profileImage != null
+                                            ? Image.file(
+                                                profileService.profileImage!,
+                                                fit: BoxFit.cover,
+                                              )
+                                            : Container(
+                                                color: Colors.white,
+                                                child: const Icon(
+                                                  Icons.person,
+                                                  size: 60,
+                                                  color: Colors.grey,
+                                                ),
+                                              );
+                                        },
+                                      ),
                                     ),
                                   ),
                                   Positioned(
@@ -264,16 +282,20 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 16),
-                            // User info
-                            Text(
-                              ProfileData.username,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                              textAlign: TextAlign.center,
+                            const SizedBox(height: 15),
+                            
+                            Consumer<ProfileService>(
+                              builder: (context, profileService, _) {
+                                return Text(
+                                  profileService.username,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold,
+                                    height: 1,
+                                  ),
+                                );
+                              },
                             ),
                             // Edit button styled to match home page design
                             Padding(
@@ -342,9 +364,11 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                   
                   // Menu items
                   _buildMenuOption(
-                    icon: Icons.history,
-                    title: 'Travel History',
-                    onTap: () {},
+                    icon: Icons.card_giftcard_rounded,
+                    title: 'My Vouchers',
+                    onTap: () {
+                      Navigator.pushNamed(context, '/vouchers');
+                    },
                     showArrow: true,
                   ),
                   _buildMenuOption(
@@ -357,12 +381,11 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                     icon: Icons.notifications_active,
                     title: 'Notification',
                     onTap: () {
-                      setState(() {
-                        ProfileData.notificationsEnabled = !ProfileData.notificationsEnabled;
-                      });
+                      final profileService = Provider.of<ProfileService>(context, listen: false);
+                      profileService.updateNotificationsSetting(!profileService.notificationsEnabled);
                     },
                     showToggle: true,
-                    isToggled: ProfileData.notificationsEnabled,
+                    isToggled: Provider.of<ProfileService>(context).notificationsEnabled,
                   ),
                   
                   const Divider(
@@ -508,12 +531,16 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Payment account name (without the label)
-                    Text(
-                      ProfileData.paymentAccountName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+                    Consumer<ProfileService>(
+                      builder: (context, profileService, _) {
+                        return Text(
+                          profileService.paymentAccountName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 4),
                     const Text(
@@ -687,7 +714,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   }
 
   void _showEditUsernameDialog(BuildContext context) {
-    final TextEditingController controller = TextEditingController(text: ProfileData.username);
+    final profileService = Provider.of<ProfileService>(context, listen: false);
+    final TextEditingController controller = TextEditingController(text: profileService.username);
     final themeService = Provider.of<ThemeService>(context, listen: false);
     final primaryColor = themeService.primaryColor;
     
@@ -887,11 +915,10 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                       onPressed: () {
                         final newUsername = controller.text.trim();
                         if (newUsername.isNotEmpty) {
-                          setState(() {
-                            ProfileData.username = newUsername;
-                          });
+                          profileService.updateUsername(newUsername);
+                          ProfileData.username = newUsername; // Update legacy data for compatibility
+                          Navigator.pop(context);
                         }
-                        Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,

@@ -781,23 +781,23 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: primaryColor.withOpacity(0.1),
+                        color: const Color.fromARGB(255, 255, 189, 45).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Icons.star,
+                          const Icon(
+                            Icons.star_rounded,
                             size: 20,
-                            color: primaryColor,
+                            color: Color.fromARGB(255, 255, 189, 45),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             '${reward.pointsCost} Points',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: primaryColor,
+                              color: Color.fromARGB(255, 255, 189, 45),
                             ),
                           ),
                         ],
@@ -822,6 +822,95 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
                       fontSize: 16,
                       color: Colors.grey.shade800,
                       height: 1.4,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Regulations and Terms section
+                  const Text(
+                    'Terms & Conditions',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildRegulationItem(
+                          'Valid for 30 days from the date of redemption.',
+                          Icons.calendar_today_outlined,
+                        ),
+                        const SizedBox(height: 10),
+                        _buildRegulationItem(
+                          'Cannot be combined with other promotions or discounts.',
+                          Icons.block,
+                        ),
+                        const SizedBox(height: 10),
+                        _buildRegulationItem(
+                          'No cash or credit back for any unused portion.',
+                          Icons.attach_money,
+                        ),
+                        const SizedBox(height: 10),
+                        _buildRegulationItem(
+                          'Redemption is subject to availability and may be declined during peak hours.',
+                          Icons.access_time,
+                        ),
+                        const SizedBox(height: 10),
+                        _buildRegulationItem(
+                          'TransitGo is not responsible for lost, stolen, or expired rewards.',
+                          Icons.info_outline,
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // How to Use section
+                  const Text(
+                    'How to Use',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildHowToUseStep(
+                          1,
+                          'Redeem this reward using your available points',
+                          primaryColor,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildHowToUseStep(
+                          2,
+                          'Receive a voucher code in "My Vouchers" section',
+                          primaryColor,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildHowToUseStep(
+                          3,
+                          'Present the voucher to the merchant at time of use',
+                          primaryColor,
+                        ),
+                      ],
                     ),
                   ),
                   
@@ -911,35 +1000,39 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
                   // Redeem button
                   ElevatedButton(
                     onPressed: rewardsService.canAfford(reward) 
-                        ? () async {
-                            bool success = await rewardsService.redeemReward(reward);
-                            if (context.mounted) {
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    success
-                                        ? 'Successfully redeemed ${reward.title}!'
-                                        : 'Failed to redeem the reward',
-                                  ),
-                                  behavior: SnackBarBehavior.floating,
-                                  backgroundColor: success ? Colors.green : Colors.red,
-                                ),
-                              );
-                            }
+                        ? () {
+                            _showRedeemConfirmation(context, reward, rewardsService);
                           } 
                         : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      elevation: 2,
                     ),
-                    child: Text(
-                      rewardsService.canAfford(reward) 
-                          ? 'Redeem Now' 
-                          : 'Not Enough Points (Need ${reward.pointsCost - rewardsService.points} more)',
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          rewardsService.canAfford(reward) 
+                              ? Icons.redeem
+                              : Icons.lock,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          rewardsService.canAfford(reward) 
+                              ? 'Redeem Now' 
+                              : 'Need ${reward.pointsCost - rewardsService.points} more points',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -968,5 +1061,238 @@ class _RewardCatalogPageState extends State<RewardCatalogPage> {
       case RewardCategory.exclusive:
         return Icons.workspace_premium;
     }
+  }
+
+  Widget _buildRegulationItem(String text, IconData icon) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: Colors.grey.shade700,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: Colors.grey.shade800,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHowToUseStep(int step, String description, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            shape: BoxShape.circle,
+            border: Border.all(color: color),
+          ),
+          child: Center(
+            child: Text(
+              step.toString(),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Text(
+            description,
+            style: TextStyle(
+              color: Colors.grey.shade800,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showRedeemConfirmation(BuildContext context, RewardItem reward, RewardsService rewardsService) {
+    final themeService = Provider.of<ThemeService>(context, listen: false);
+    final primaryColor = themeService.primaryColor;
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            Icon(
+              _getCategoryIcon(reward.category),
+              color: primaryColor,
+              size: 24,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Confirm Redemption',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade800,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to redeem:',
+              style: TextStyle(
+                color: Colors.grey.shade700,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: primaryColor.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Icon(
+                        _getCategoryIcon(reward.category),
+                        color: primaryColor,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          reward.title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.star_rounded,
+                              size: 14,
+                              color: Color.fromARGB(255, 255, 189, 45),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${reward.pointsCost} points',
+                              style: const TextStyle(
+                                color: Color.fromARGB(255, 255, 189, 45),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: Colors.blue.shade700,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'This action cannot be undone. The points will be deducted from your account.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue.shade700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.grey.shade700,
+            ),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close the dialog
+              Navigator.pop(context); // Close the bottom sheet
+                
+              bool success = await rewardsService.redeemReward(reward);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      success
+                          ? 'Successfully redeemed ${reward.title}!'
+                          : 'Failed to redeem the reward',
+                    ),
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: success ? Colors.green : Colors.red,
+                  ),
+                );
+
+                // If redemption was successful, navigate to My Vouchers page
+                if (success) {
+                  Future.delayed(const Duration(milliseconds: 500), () {
+                    if (context.mounted) {
+                      Navigator.pushNamed(context, '/vouchers');
+                    }
+                  });
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('Confirm Redemption'),
+          ),
+        ],
+      ),
+    );
   }
 } 

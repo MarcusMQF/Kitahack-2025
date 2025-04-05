@@ -518,7 +518,7 @@ class _EWalletPageState extends State<EWalletPage> with SingleTickerProviderStat
                       ),
                       const SizedBox(width: 8),
                       const ShimmerText(
-                        text: '**** **** **** 4528',
+                        text: '1300 6051 5517',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,

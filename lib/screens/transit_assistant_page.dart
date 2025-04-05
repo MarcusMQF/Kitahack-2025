@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/theme_service.dart';
+import '../services/gemini_service.dart';
+import '../services/rewards_service.dart';
+import '../services/wallet_service.dart';
+import '../services/balance_service.dart';
+import '../services/sdg_impact_service.dart';
+import '../models/loyalty_rank.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'dart:math' as math;
 import '../screens/profile_page.dart'; // Import ProfileData class
 
@@ -28,8 +35,13 @@ class _TransitAssistantPageState extends State<TransitAssistantPage> {
   final List<Message> _messages = [];
   bool _isTyping = false;
   bool _isListening = false;
+  late GeminiService _geminiService;
+  bool _useGemini = true;
+  String _errorMessage = '';
+  late stt.SpeechToText _speechToText;
+  bool _speechAvailable = true;
   
-  // List of predefined responses for the demo
+  // List of predefined responses for the demo (fallback if Gemini is not available)
   final Map<String, String> _mockResponses = {
     'route': 'To get from KL Sentral to Mid Valley, take the KTM Komuter train (Port Klang Line) from KL Sentral to Mid Valley station. It takes about 6 minutes and costs RM1.30. Trains depart every 15-30 minutes.',
     'points': 'You currently have 2,450 points. You\'re 1,550 points away from reaching Gold level! Keep using public transit to earn more points.',
@@ -46,8 +58,66 @@ class _TransitAssistantPageState extends State<TransitAssistantPage> {
   @override
   void initState() {
     super.initState();
+    _initializeGemini();
+    _initSpeechRecognition();
     // Add welcome message
-    _addBotMessage('Hello! I\'m your Transit Assistant, powered by Google\'s Agentspace AI. I can help with route planning, schedules, points balance, and travel tips. How can I assist you today?');
+    _addBotMessage('Hello! I\'m your Transit Assistant, powered by Google\'s Gemini AI. I can help with route planning, schedules, points balance, and travel tips. How can I assist you today?');
+  }
+  
+  Future<void> _initializeGemini() async {
+    _geminiService = Provider.of<GeminiService>(context, listen: false);
+    try {
+      await _geminiService.initialize();
+      setState(() {
+        _useGemini = true;
+        _errorMessage = '';
+      });
+    } catch (e) {
+      setState(() {
+        _useGemini = false;
+        _errorMessage = e.toString();
+        debugPrint('Failed to initialize Gemini: $e');
+      });
+      
+      // Show error message if Gemini failed to initialize
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error initializing Gemini AI: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    }
+  }
+  
+  Future<void> _initSpeechRecognition() async {
+    _speechToText = stt.SpeechToText();
+    try {
+      bool available = await _speechToText.initialize(
+        onStatus: _onSpeechStatus,
+        onError: (error) => print('Speech recognition error: $error'),
+      );
+      if (!available) {
+        debugPrint('Speech recognition not available on this device');
+      }
+    } catch (e) {
+      debugPrint('Error initializing speech recognition: $e');
+      // Set flag to disable speech recognition
+      setState(() {
+        _speechAvailable = false;
+      });
+    }
+  }
+  
+  void _onSpeechStatus(String status) {
+    debugPrint('Speech recognition status: $status');
+    if (status == 'done' || status == 'notListening') {
+      setState(() {
+        _isListening = false;
+      });
+    }
   }
   
   void _addBotMessage(String message) {
@@ -60,7 +130,19 @@ class _TransitAssistantPageState extends State<TransitAssistantPage> {
     });
   }
 
-  void _sendMessage() {
+  String _formatGeminiResponse(String response) {
+    // Process the response to handle markdown-style formatting
+    
+    // Replace lines starting with * with bullet points •
+    final bulletPattern = RegExp(r'^\s*\*\s*(.*?)$', multiLine: true);
+    response = response.replaceAllMapped(bulletPattern, (match) {
+      return '• ${match.group(1)}';
+    });
+    
+    return response;
+  }
+  
+  Future<void> _sendMessage() async {
     if (_textController.text.trim().isEmpty) return;
     
     final userMessage = _textController.text;
@@ -76,25 +158,115 @@ class _TransitAssistantPageState extends State<TransitAssistantPage> {
       _isTyping = true;
     });
     
-    // Simulate typing delay
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (!mounted) return;
+    try {
+      String botResponse;
       
-      // Generate appropriate response
-      String botResponse = _getMockResponse(userMessage.toLowerCase());
+      if (_useGemini) {
+        // Get data from various services
+        final rewardsService = Provider.of<RewardsService>(context, listen: false);
+        Provider.of<WalletService>(context, listen: false);
+        final balanceService = Provider.of<BalanceService>(context, listen: false);
+        final sdgImpactService = Provider.of<SdgImpactService>(context, listen: false);
+        
+        // Prepare context data
+        final int currentPoints = rewardsService.points;
+        final LoyaltyRank currentRank = rewardsService.currentRank;
+        final LoyaltyRank? nextRank = rewardsService.nextRank;
+        final int pointsToNextLevel = nextRank != null ? nextRank.creditsRequired - currentPoints : 0;
+        final String currentLevelName = currentRank.name;
+        final String nextLevelName = nextRank?.name ?? "Maximum Level";
+        final double creditBalance = balanceService.balance;
+        final double carbonSaved = sdgImpactService.impact.co2Saved;
+        
+        // Get available rewards (mock data since the actual method isn't available)
+        final List<Map<String, dynamic>> availableRewards = [
+          {'name': 'Free Coffee', 'points': 1500, 'description': 'Redeem for a free coffee at partner cafes'},
+          {'name': 'RM5 Grab Voucher', 'points': 2000, 'description': 'Discount on your next Grab ride'},
+          {'name': 'RM10 Transit Credit', 'points': 3000, 'description': 'Add RM10 to your transit wallet'},
+          {'name': 'Movie Ticket', 'points': 5000, 'description': 'One free movie ticket at selected theaters'},
+        ];
+        
+        // Get recent transactions
+        final List<Transaction> recentTransactions = balanceService.transactions.take(5).toList();
+        final List<Map<String, String>> recentTrips = recentTransactions
+            .where((transaction) => transaction.isDebit)
+            .map((trip) => {
+                'date': '${trip.date.day}/${trip.date.month}/${trip.date.year}',
+                'title': trip.title,
+                'amount': trip.amount.toString(),
+                'type': trip.iconType.toString(),
+              }).toList();
+        
+        // Format a prompt that includes context about being a transit assistant
+        final String prompt = """
+You are a transit assistant for public transportation in Malaysia. Your goal is to help users with transit-related questions.
+You should provide helpful, accurate information about transportation routes, schedules, fares, and services.
+
+The user's current information:
+- Current points: $currentPoints points
+- Current level: $currentLevelName
+- Points needed for next level ($nextLevelName): $pointsToNextLevel more points
+- Current wallet balance: RM$creditBalance
+- Carbon emissions saved this month: ${carbonSaved.toStringAsFixed(2)} kg
+
+Available rewards:
+${availableRewards.map((r) => "* ${r['name']} (${r['points']} points): ${r['description']}").join('\n')}
+
+Recent transactions:
+${recentTrips.map((t) => "* ${t['date']}: ${t['title']} - RM${t['amount']}").join('\n')}
+
+If asked about SDG impact, explain how using public transport contributes to Sustainable Development Goals, with the user's carbon savings of ${carbonSaved.toStringAsFixed(2)} kg this month.
+
+Use **double asterisks** to emphasize important information, which will be displayed in bold.
+Use * at the beginning of a line to create bullet points in your response.
+
+User query: $userMessage
+""";
+        
+        // Send message to Gemini
+        String rawResponse = await _geminiService.sendMessage(prompt);
+        
+        // Format the response to handle markdown-style formatting
+        botResponse = _formatGeminiResponse(rawResponse);
+      } else {
+        // Fallback to mock responses
+        String rawResponse = _getMockResponse(userMessage.toLowerCase());
+        botResponse = _formatGeminiResponse(rawResponse);
+      }
       
-      setState(() {
-        _isTyping = false;
-        _messages.add(Message(
-          text: botResponse,
-          isUser: false,
-          timestamp: DateTime.now(),
-        ));
-      });
-    });
+      if (mounted) {
+        setState(() {
+          _isTyping = false;
+          _messages.add(Message(
+            text: botResponse,
+            isUser: false,
+            timestamp: DateTime.now(),
+          ));
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isTyping = false;
+          _messages.add(Message(
+            text: "I'm sorry, I encountered an error. Please try again later.",
+            isUser: false,
+            timestamp: DateTime.now(),
+          ));
+        });
+        
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
   
-  // Generate a mock response based on message keywords
+  // Generate a mock response based on message keywords (used as fallback)
   String _getMockResponse(String message) {
     if (message.contains('route') || message.contains('go to') || message.contains('get to') || 
         message.contains('from') || message.contains('to ')) {
@@ -151,6 +323,7 @@ class _TransitAssistantPageState extends State<TransitAssistantPage> {
           'Transit Assistant',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
         elevation: 2,
         flexibleSpace: Container(
           decoration: BoxDecoration(
@@ -205,7 +378,7 @@ class _TransitAssistantPageState extends State<TransitAssistantPage> {
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    'Powered by Google Agentspace',
+                    'Powered by Google Gemini',
                     style: TextStyle(
                       color: primaryColor,
                       fontWeight: FontWeight.w500,
@@ -216,20 +389,27 @@ class _TransitAssistantPageState extends State<TransitAssistantPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade100,
+                      color: _useGemini ? Colors.green.shade100 : Colors.orange.shade100,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.green.shade300, width: 1),
+                      border: Border.all(
+                        color: _useGemini ? Colors.green.shade300 : Colors.orange.shade300, 
+                        width: 1
+                      ),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.circle, size: 8, color: Colors.green.shade700),
+                        Icon(
+                          _useGemini ? Icons.circle : Icons.warning_amber_rounded, 
+                          size: 8, 
+                          color: _useGemini ? Colors.green.shade700 : Colors.orange.shade700
+                        ),
                         const SizedBox(width: 4),
                         Text(
-                          'Online',
+                          _useGemini ? 'Online' : 'Fallback Mode',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
-                            color: Colors.green.shade700,
+                            color: _useGemini ? Colors.green.shade700 : Colors.orange.shade700,
                           ),
                         ),
                       ],
@@ -306,7 +486,7 @@ class _TransitAssistantPageState extends State<TransitAssistantPage> {
             // Input area - simplified container with no bottom spacing
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: const BorderRadius.only(
@@ -386,23 +566,79 @@ class _TransitAssistantPageState extends State<TransitAssistantPage> {
                   const SizedBox(width: 10),
                   // Voice input button
                   GestureDetector(
-                    onTap: _toggleListening,
+                    onTap: _speechAvailable ? _toggleListening : () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Speech recognition is not available on this device'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
-                      width: 44,
-                      height: 44,
+                      width: 50,
+                      height: 50,
                       decoration: BoxDecoration(
-                        color: _isListening ? Colors.red.withOpacity(0.2) : Colors.grey.shade100,
+                        color: !_speechAvailable
+                            ? Colors.grey.shade200
+                            : _isListening
+                                ? Colors.red.withOpacity(0.2)
+                                : Colors.grey.shade100,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: _isListening ? Colors.red : Colors.grey.shade300,
+                          color: !_speechAvailable
+                              ? Colors.grey.shade400
+                              : _isListening
+                                  ? Colors.red
+                                  : Colors.grey.shade300,
                           width: 1.5,
                         ),
                       ),
-                      child: Icon(
-                        _isListening ? Icons.mic : Icons.mic_none,
-                        color: _isListening ? Colors.red : Colors.grey.shade700,
-                        size: 22,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Pulsing animation when listening
+                          if (_isListening && _speechAvailable)
+                            TweenAnimationBuilder<double>(
+                              tween: Tween<double>(begin: 0.5, end: 1.2),
+                              duration: const Duration(milliseconds: 1000),
+                              curve: Curves.easeInOut,
+                              builder: (context, value, child) {
+                                return RepaintBoundary(
+                                  child: AnimatedScale(
+                                    scale: value,
+                                    duration: Duration.zero,
+                                    child: Container(
+                                      width: 44,
+                                      height: 44,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.red.withOpacity(0.3),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                              onEnd: () {
+                                setState(() {}); // Restart animation
+                              },
+                            ),
+                          
+                          // Microphone icon
+                          Icon(
+                            !_speechAvailable
+                                ? Icons.mic_off
+                                : _isListening
+                                    ? Icons.mic
+                                    : Icons.mic_none,
+                            color: !_speechAvailable
+                                ? Colors.grey.shade500
+                                : _isListening
+                                    ? Colors.red
+                                    : Colors.grey.shade700,
+                            size: 22,
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -414,8 +650,8 @@ class _TransitAssistantPageState extends State<TransitAssistantPage> {
                     onTap: _textController.text.isEmpty ? null : _sendMessage,
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      width: 44,
-                      height: 44,
+                      width: 50,
+                      height: 50,
                       decoration: BoxDecoration(
                         gradient: _textController.text.isEmpty
                             ? null
@@ -511,37 +747,81 @@ class _TransitAssistantPageState extends State<TransitAssistantPage> {
   }
 
   void _toggleListening() {
-    // In a real app, this would use the speech recognition API
-    // For this demo, we'll simulate the process
+    // Don't proceed if speech recognition is not available
+    if (!_speechAvailable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Speech recognition is not available on this device'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
     
     if (_isListening) {
       // Stop listening
       setState(() {
         _isListening = false;
-        // Simulate receiving text from voice
-        _textController.text = 'Show me the next train to KL Sentral';
+        _speechToText.stop();
       });
     } else {
       // Start listening
-      setState(() {
-        _isListening = true;
-        _showListeningSnackBar();
-      });
-      
-      // Simulate listening for 3 seconds
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted && _isListening) {
-          setState(() {
-            _isListening = false;
-            _textController.text = 'Show me the next train to KL Sentral';
-          });
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        }
-      });
+      _startListening();
     }
   }
   
-  void _showListeningSnackBar() {
+  void _startListening() async {
+    if (!_speechAvailable) return;
+    
+    try {
+      // Check if speech recognition is available
+      if (!_speechToText.isAvailable) {
+        await _initSpeechRecognition();
+        // If still not available after init, exit
+        if (!_speechAvailable) return;
+      }
+      
+      setState(() {
+        _isListening = true;
+      });
+      
+      await _speechToText.listen(
+        onResult: (result) {
+          setState(() {
+            _textController.text = result.recognizedWords;
+            
+            // If we have a final result, stop listening and send the message
+            if (result.finalResult && _textController.text.isNotEmpty) {
+              _isListening = false;
+              Future.delayed(const Duration(milliseconds: 500), () {
+                _sendMessage();
+              });
+            }
+          });
+        },
+        listenFor: const Duration(seconds: 30),
+        pauseFor: const Duration(seconds: 3),
+        cancelOnError: true,
+        partialResults: true,
+        listenMode: stt.ListenMode.confirmation,
+      );
+    } catch (e) {
+      debugPrint('Error starting speech recognition: $e');
+      setState(() {
+        _isListening = false;
+        _speechAvailable = false;
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not access microphone: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
+    // Show a snackbar to indicate we're listening
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -563,6 +843,7 @@ class _TransitAssistantPageState extends State<TransitAssistantPage> {
           onPressed: () {
             setState(() {
               _isListening = false;
+              _speechToText.stop();
             });
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
           },
@@ -651,12 +932,12 @@ class _TransitAssistantPageState extends State<TransitAssistantPage> {
                   ),
                 ],
               ),
-              child: Text(
-                message.text,
-                style: TextStyle(
-                  color: message.isUser ? Colors.white : Colors.black87,
-                ),
-              ),
+              child: message.isUser
+                ? Text(
+                    message.text,
+                    style: const TextStyle(color: Colors.white),
+                  )
+                : _buildFormattedText(message.text),
             ),
           ),
           
@@ -711,6 +992,96 @@ class _TransitAssistantPageState extends State<TransitAssistantPage> {
     );
   }
   
+  Widget _buildFormattedText(String text) {
+    final ThemeService themeService = Provider.of<ThemeService>(context);
+    final primaryColor = themeService.primaryColor;
+    
+    // Process the text to identify bold sections (marked with **) and bullet points
+    final List<InlineSpan> spans = [];
+    
+    // Split by newlines to handle bullet points
+    final lines = text.split('\n');
+    
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      
+      // Check if this is a bullet point
+      if (line.startsWith('• ')) {
+        // Add some space before bullet points (except first line)
+        if (i > 0 && !lines[i-1].startsWith('• ')) {
+          spans.add(const TextSpan(text: '\n'));
+        }
+        
+        // Add bullet point with proper indentation
+        spans.add(TextSpan(
+          text: '• ',
+          style: TextStyle(
+            color: primaryColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ));
+        
+        // Process the bullet point text for bold formatting
+        final bulletText = line.substring(2);
+        _addFormattedTextSpans(bulletText, spans);
+        
+        // Add newline after bullet point
+        spans.add(const TextSpan(text: '\n'));
+      } else {
+        // For regular text, process for bold sections
+        _addFormattedTextSpans(line, spans);
+        
+        // Add newline if not the last line
+        if (i < lines.length - 1) {
+          spans.add(const TextSpan(text: '\n'));
+        }
+      }
+    }
+    
+    return RichText(
+      text: TextSpan(
+        children: spans,
+      ),
+    );
+  }
+  
+  void _addFormattedTextSpans(String text, List<InlineSpan> spans) {
+    final ThemeService themeService = Provider.of<ThemeService>(context);
+    final primaryColor = themeService.primaryColor;
+    final boldPattern = RegExp(r'\*\*(.*?)\*\*');
+    int lastMatchEnd = 0;
+    
+    // Find all bold sections in this text
+    for (final match in boldPattern.allMatches(text)) {
+      // Add text before the bold section
+      if (match.start > lastMatchEnd) {
+        spans.add(TextSpan(
+          text: text.substring(lastMatchEnd, match.start),
+          style: const TextStyle(color: Colors.black87),
+        ));
+      }
+      
+      // Add the bold section
+      spans.add(TextSpan(
+        text: match.group(1),
+        style: TextStyle(
+          color: primaryColor,
+          fontWeight: FontWeight.bold,
+        ),
+      ));
+      
+      lastMatchEnd = match.end;
+    }
+    
+    // Add any remaining text after the last bold section
+    if (lastMatchEnd < text.length) {
+      spans.add(TextSpan(
+        text: text.substring(lastMatchEnd),
+        style: const TextStyle(color: Colors.black87),
+      ));
+    }
+  }
+  
   void _showInfoDialog(BuildContext context) {
     final themeService = Provider.of<ThemeService>(context, listen: false);
     final primaryColor = themeService.primaryColor;
@@ -729,8 +1100,32 @@ class _TransitAssistantPageState extends State<TransitAssistantPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('This is a demonstration of a transit assistant powered by Google Agentspace generative AI.'),
+            const Text('This is a demonstration of a transit assistant powered by Google Gemini generative AI.'),
             const SizedBox(height: 16),
+            
+            if (_errorMessage.isNotEmpty) ...[
+              const Text(
+                'Status: Error connecting to Gemini',
+                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                _errorMessage,
+                style: TextStyle(color: Colors.red.shade700, fontSize: 12),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Using fallback responses. To use Gemini, please add your API key to the .env file.',
+                style: TextStyle(fontStyle: FontStyle.italic),
+              ),
+              const SizedBox(height: 16),
+            ] else if (_useGemini) ...[
+              const Text(
+                'Status: Connected to Gemini AI',
+                style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+            ],
+            
             const Text('In a production environment, this assistant would:'),
             const SizedBox(height: 8),
             ...['Connect to transit APIs for real-time data',
@@ -748,14 +1143,6 @@ class _TransitAssistantPageState extends State<TransitAssistantPage> {
                 ],
               ),
             )),
-            const SizedBox(height: 16),
-            Text(
-              'For this demo, try asking about routes, schedules, points, or SDG impact.',
-              style: TextStyle(
-                fontStyle: FontStyle.italic,
-                color: Colors.grey.shade700,
-              ),
-            ),
           ],
         ),
         actions: [

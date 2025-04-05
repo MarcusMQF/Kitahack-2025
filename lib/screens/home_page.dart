@@ -10,6 +10,7 @@ import '../config/api_keys.dart'; // Import API keys from config
 import 'package:provider/provider.dart';
 import '../services/rewards_service.dart';
 import '../services/theme_service.dart'; // Add theme service import
+import '../services/profile_service.dart'; // Add profile service import
 import 'reward_page.dart';
 import '../services/sdg_impact_service.dart';
 import 'sdg_impact_page.dart';
@@ -303,14 +304,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                   ),
                                 ),
                                 const SizedBox(height: 2),
-                                Text(
-                                  ProfileData.username,
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                    letterSpacing: 0.5,
-                                  ),
+                                Consumer<ProfileService>(
+                                  builder: (context, profileService, _) {
+                                    return Text(
+                                      profileService.username,
+                                      style: const TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    );
+                                  },
                                 ),
                               ],
                             ),
@@ -329,29 +334,33 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                               child: Builder(
                                 builder: (context) {
                                   // Check if profile image exists
-                                  final profileImage = ProfileData.sharedProfileImage;
-                                  
-                                  if (profileImage != null && profileImage.existsSync()) {
-                                    try {
-                                      return CircleAvatar(
-                                        radius: 24,
-                                        backgroundImage: FileImage(profileImage),
-                                      );
-                                    } catch (e) {
-                                      // Fallback to default if any error with the file
-                                      return CircleAvatar(
-                                        radius: 24,
-                                        backgroundColor: primaryColor.withAlpha((0.2 * 255).round()),
-                                        child: Icon(Icons.person, color: primaryColor, size: 26),
-                                      );
-                                    }
-                                  } else {
-                                    return CircleAvatar(
-                                      radius: 24,
-                                      backgroundColor: primaryColor.withAlpha((0.2 * 255).round()),
-                                      child: Icon(Icons.person, color: primaryColor, size: 26),
-                                    );
-                                  }
+                                  return Consumer<ProfileService>(
+                                    builder: (context, profileService, _) {
+                                      final profileImage = profileService.profileImage;
+                                      
+                                      if (profileImage != null && profileImage.existsSync()) {
+                                        try {
+                                          return CircleAvatar(
+                                            radius: 24,
+                                            backgroundImage: FileImage(profileImage),
+                                          );
+                                        } catch (e) {
+                                          // Fallback to default if any error with the file
+                                          return CircleAvatar(
+                                            radius: 24,
+                                            backgroundColor: primaryColor.withAlpha((0.2 * 255).round()),
+                                            child: Icon(Icons.person, color: primaryColor, size: 26),
+                                          );
+                                        }
+                                      } else {
+                                        return CircleAvatar(
+                                          radius: 24,
+                                          backgroundColor: primaryColor.withAlpha((0.2 * 255).round()),
+                                          child: Icon(Icons.person, color: primaryColor, size: 26),
+                                        );
+                                      }
+                                    },
+                                  );
                                 }
                               ),
                             ),
@@ -951,6 +960,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                       route: '${trip.entryStation} → ${trip.exitStation}',
                                       time: time,
                                       points: '+${trip.pointsEarned}',
+                                      credits: '+${trip.creditsEarned}',
                                       isTrain: isTrain,
                                     ),
                                     const SizedBox(height: 12),
@@ -1220,6 +1230,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     required String route,
     required String time,
     required String points,
+    required String credits,
     bool isTrain = false,
   }) {
     final themeService = Provider.of<ThemeService>(context);
@@ -1312,19 +1323,71 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.green.withAlpha((0.1 * 255).round()),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                points,
-                style: const TextStyle(
-                  color: Colors.green,
-                  fontWeight: FontWeight.bold,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // Points indicator
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 255, 245, 218),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color.fromARGB(255, 255, 219, 134),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.star_rounded,
+                        size: 14,
+                        color: Color.fromARGB(255, 255, 189, 45),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        points,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: Color.fromARGB(255, 255, 189, 45),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                // Credits indicator
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.shade50,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.purple.shade200,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.diamond_rounded,
+                        size: 14,
+                        color: Colors.purple.shade700,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        credits,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: Colors.purple.shade700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),
