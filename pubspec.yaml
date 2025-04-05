@@ -55,9 +55,9 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "lib/images/icon.png"
+  image_path: "lib/images/readme_icon.png"
   adaptive_icon_background: "#0275F1" # Use blue background color matching the icon
-  adaptive_icon_foreground: "lib/images/icon.png"
+  adaptive_icon_foreground: "lib/images/readme_icon.png"
   remove_alpha_ios: true
   web:
     generate: false
