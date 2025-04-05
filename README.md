@@ -13,7 +13,7 @@
 
 ## 📱 About
 
-**TransitGo** is a Flutter-based mobile application designed to **promote sustainable urban mobility in Malaysia** by simplifying public transit payments and rewarding eco-friendly travel. Built for a hackathon, it **simulates NFC-based tap-and-pay functionality for LRT, MRT,KTM and Bus rides**, allowing users to pay via an eWallet, earn points with a swipe-to-claim system, and track trip history with **Google Maps integration**.** Leveraging **Google AI technologies like Firebase for real-time data and Google Maps Platform API for route visualization, and Google Gemini AI Assistant** TransitGo aligns with SDG 11 (Sustainable Cities) and SDG 13 (Climate Action). Whether you're commuting in Kuala Lumpur or beyond, TransitGo makes public transit seamless, rewarding, and green.
+**TransitGo** is a Flutter-based mobile application designed to **promote sustainable urban mobility in Malaysia** by simplifying public transit payments and rewarding eco-friendly travel. Built for a hackathon, it **simulates NFC-based tap-and-pay functionality for LRT, MRT,KTM and Bus rides**, allowing users to pay via an eWallet, earn points with a swipe-to-claim system, and track trip history with **Google Maps integration**. Leveraging **Google AI technologies like Firebase for real-time data and Google Maps Platform API for route visualization, and Google Gemini AI Assistant** TransitGo aligns with SDG 11 (Sustainable Cities) and SDG 13 (Climate Action). Whether you're commuting in Kuala Lumpur or beyond, TransitGo makes public transit seamless, rewarding, and green.
 
 - **Key Features:** Simulated NFC payments, eWallet, points system, transit history with maps.
 - **Tech Stack:** Flutter, Dart, Firebase, Google Maps Platform API, Google Gemini
