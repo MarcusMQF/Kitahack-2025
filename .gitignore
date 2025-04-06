@@ -52,3 +52,11 @@ lib/config/api_keys.dart
 .env.development
 .env.test
 .env.production
+
+.env.*
+!.env.example
+
+# Firebase configuration with sensitive info
+google-services.json
+firebase_options.dart
+GoogleService-Info.plist

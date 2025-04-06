@@ -143,30 +143,3 @@ To use this feature:
     <td>Voice input and recognition</td>
   </tr>
 </table>
-
-## 🚀 Getting Started
-
-### Installation
-
-1. Clone the repository
-   ```bash
-   git clone https://github.com/yourusername/transit_go_app.git
-   cd transit_go_app
-   ```
-
-2. Install dependencies
-   ```bash
-   flutter pub get
-   ```
-
-3. Set up API keys:
-   - Rename `lib/config/api_keys.example.dart` to `lib/config/api_keys.dart`
-   - Add your Google Maps API key:
-   ```dart
-   static const String googleMapsApiKey = 'YOUR_API_KEY_HERE';
-   ```
-
-4. Run the app
-   ```bash
-   flutter run
-   ```
