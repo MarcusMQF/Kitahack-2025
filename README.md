@@ -19,6 +19,8 @@
 - **Tech Stack:** Flutter, Dart, Firebase, Google Maps Platform API, Google Gemini
 - **Purpose:** Encourage public transit use to reduce urban congestion and carbon emissions.
 
+<img src="lib/images/mockup.png" alt="Mockup"/>
+
 ## ✨ Features
 
 - 🗺️ **Route Planning** - Find optimal routes to a destination using public transportation
