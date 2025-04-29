@@ -15,7 +15,7 @@
 
 **TransitGo** is a Flutter-based mobile application designed to **promote sustainable urban mobility in Malaysia** by simplifying public transit payments and rewarding eco-friendly travel. Built for a hackathon, it **simulates NFC-based tap-and-pay functionality for LRT, MRT,KTM and Bus rides**, allowing users to pay via an eWallet, earn points with a swipe-to-claim system, and track trip history with **Google Maps integration**. Leveraging **Google AI technologies like Firebase for real-time data and Google Maps Platform API for route visualization, and Google Gemini AI Assistant** TransitGo aligns with SDG 11 (Sustainable Cities) and SDG 13 (Climate Action). Whether you're commuting in Kuala Lumpur or beyond, TransitGo makes public transit seamless, rewarding, and green.
 
-- **Key Features:** Simulated NFC payments, eWallet, points system, transit history with maps.
+- **Key Features:** Simulated NFC Payments, EWallet, Points system, Transit history with maps, Transit Routing.
 - **Tech Stack:** Flutter, Dart, Firebase, Google Maps Platform API, Google Gemini
 - **Purpose:** Encourage public transit use to reduce urban congestion and carbon emissions.
 
@@ -23,28 +23,11 @@
 
 ## ✨ Features
 
-- 🗺️ **Route Planning** - Find optimal routes to a destination using public transportation
+- 🗺️ **Route Planning** - Find optimal routes to a destination using public transportation with step-by-step navigation
 - ⏱️ **Real-time Updates** - Get accurate arrival and departure times
 - 🔖 **Favorites** - Save frequent locations and routes for quick access
 - 📊 **Travel History** - Track and analyze your travel patterns
 - 🏆 **Rewards System** - Earn points and credits for using sustainable public transportation
-- 📱 **Cross-platform** - Available on iOS and Android
-
-## 🗺️ Transit Routing
-
-TransitGo leverages Google Maps Platform's Directions API to provide comprehensive transit routing between locations. The app displays:
-
-- Multiple route options with different transit modes
-- Step-by-step navigation instructions
-- Walking segments between transit options
-- Real-time arrival and departure times
-- Transit line information and stops
-
-To use this feature:
-
-1. Enable the Directions API in your Google Cloud Platform project
-2. Ensure your API key has the necessary permissions
-3. Add your API key to the `lib/config/api_keys.dart` file
 
 ## 🛠️ Tech Stack
 
@@ -145,3 +128,57 @@ To use this feature:
     <td>Voice input and recognition</td>
   </tr>
 </table>
+
+## 📂 Project Structure
+
+TransitGo follows a modular architecture for maintainability and scalability:
+
+```
+lib/
+├── main.dart                  # Application entry point
+├── theme.dart                 # Global theme configuration
+│
+├── components/                # Reusable UI components
+│   ├── buttons/               # Custom button components
+│   ├── cards/                 # Card-based UI elements
+│   ├── inputs/                # Form and input components
+│   └── navigation/            # Navigation-related components
+│
+├── config/                    # Configuration files
+│   ├── api_keys.dart          # API key storage (gitignored)
+│   ├── routes.dart            # App navigation routes
+│   └── constants.dart         # Global constants
+│
+├── models/                    # Data models
+│   ├── user_model.dart        # User profile data structure
+│   ├── transit_model.dart     # Transit-related data structures
+│   ├── payment_model.dart     # Payment and transaction models
+│   └── rewards_model.dart     # Points and rewards system models
+│
+├── screens/                   # App screens
+│   ├── home/                  # Home screen and related views
+│   ├── map/                   # Map-related screens
+│   ├── payment/               # Payment flow screens
+│   ├── routes/                # Route planning screens
+│   ├── profile/               # User profile screens
+│   └── rewards/               # Rewards and points screens
+│
+├── services/                  # External service integrations
+│   ├── api_service.dart       # API communication layer
+│   ├── location_service.dart  # Location services
+│   ├── map_service.dart       # Google Maps integration
+│   ├── auth_service.dart      # Authentication service
+│   └── storage_service.dart   # Local storage service
+│
+├── utils/                     # Utility functions
+│   ├── formatters.dart        # Text and data formatters
+│   ├── validators.dart        # Input validation functions
+│   ├── extensions.dart        # Dart extensions
+│   └── helpers.dart           # General helper functions
+│
+└── widgets/                   # Custom widgets
+    ├── transit_card.dart      # Transit information card
+    ├── route_item.dart        # Route list item
+    ├── payment_button.dart    # NFC payment button
+    └── reward_card.dart       # Reward display card
+```
